@@ -19,7 +19,7 @@ func MergeMultipleCsv(params types.GCSMergeMultipleCsvConfig) {
 		params.SourceDirectory,
 	)
 
-	common.MergeObjects(ctx, params.SourceBucket, objects, params.SourceDirectory+"/"+params.MergedObjectName)
+	common.MergeObjects(ctx, params.SourceBucket, objects, params.SourceDirectory+"/"+params.MergedObjectName+".csv")
 	common.CopyGCSObject(
 		ctx,
 		params.SourceBucket,
