@@ -29,5 +29,5 @@ func MergeMultipleCsv(params types.GCSMergeMultipleCsvConfig) {
 		params.DestinationDirectory,
 		params.DstObjectName+".csv",
 	)
-	common.DeleteObject(ctx, params.SourceBucket, params.SourceDirectory+"/"+params.MergedObjectName)
+	common.DeleteObject(ctx, params.SourceBucket, params.SourceDirectory+"/"+params.MergedObjectName+".csv")
 }
