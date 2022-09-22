@@ -1,0 +1,12 @@
+.idea
+.DS_Store
+
+*.so
+main
+
+gfw
+gfw-tool
+
+examples
+temp
+
