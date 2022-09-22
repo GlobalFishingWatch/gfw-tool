@@ -24,7 +24,7 @@ func MergeMultipleCsv(params types.GCSMergeMultipleCsvConfig) {
 		ctx,
 		params.SourceBucket,
 		params.SourceDirectory,
-		params.MergedObjectName,
+		params.MergedObjectName+".csv",
 		params.DestinationBucket,
 		params.DestinationDirectory,
 		params.DstObjectName+".csv",
