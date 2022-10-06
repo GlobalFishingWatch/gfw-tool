@@ -5,8 +5,8 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
 
-func GCSMergeMultipleCsv(params types.GCSMergeMultipleCsvConfig) {
-	gcs.MergeMultipleCsv(params)
+func GCSMergeMultipleObjects(params types.GCSMergeMultipleObjectsConfig) {
+	gcs.MergeMultipleObjects(params)
 }
 
 func GCSUploadObject(params types.GCSUploadObjectConfig) {
