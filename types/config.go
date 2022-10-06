@@ -31,3 +31,19 @@ type GCSUploadObjectConfig struct {
 	DstObjectName string
 	Content       string
 }
+
+type GCSCopyBucketDirectoryConfig struct {
+	SrcBucket    string
+	SrcDirectory string
+	DstBucket    string
+	DstDirectory string
+}
+
+type GCSCopyObjectConfig struct {
+	SrcBucket     string
+	SrcDirectory  string
+	SrcObjectName string
+	DstBucket     string
+	DstDirectory  string
+	DstObjectName string
+}

@@ -12,3 +12,11 @@ func GCSMergeMultipleObjects(params types.GCSMergeMultipleObjectsConfig) {
 func GCSUploadObject(params types.GCSUploadObjectConfig) {
 	gcs.UploadObject(params)
 }
+
+func GCSCopyBucketDirectory(params types.GCSCopyBucketDirectoryConfig) {
+	gcs.CopyBucketDirectory(params)
+}
+
+func GCSCopyObject(params types.GCSCopyBucketDirectoryConfig) {
+	gcs.CopyBucketDirectory(params)
+}
