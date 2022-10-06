@@ -4,6 +4,8 @@ type BQExportDataToGCSConfig struct {
 	Query                string
 	ProjectId            string
 	TemporalDataset      string
+	DestinationFormat    string
+	CompressObjects      bool
 	Bucket               string
 	BucketDirectory      string
 	BucketDstObjectName  string
@@ -11,12 +13,14 @@ type BQExportDataToGCSConfig struct {
 	ExportHeadersAsAFile bool
 }
 
-type GCSMergeMultipleCsvConfig struct {
+type GCSMergeMultipleObjectsConfig struct {
 	ProjectId            string
 	SourceBucket         string
 	SourceDirectory      string
 	DestinationBucket    string
 	DestinationDirectory string
+	DestinationFormat    string
+	CompressObject       bool
 	MergedObjectName     string
 	DstObjectName        string
 }
