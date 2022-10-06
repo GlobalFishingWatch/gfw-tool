@@ -93,6 +93,43 @@ func ExportTemporalTableToCsvInGCS(
 	return tempBucket.URIs
 }
 
+func ExportTemporalTableToJSONInGCS(
+	ctx context.Context,
+	projectId string,
+	dataset string,
+	temporalTable string,
+	bucket string,
+	directory string,
+	compressObjects bool,
+) []string {
+	bqClient := CreateBigQueryClient(ctx, projectId)
+	defer bqClient.Close()
+
+	temporalDataset := bqClient.DatasetInProject(projectId, dataset)
+	table := temporalDataset.Table(temporalTable)
+	uri := fmt.Sprintf(`gs://%s/%s/*.json`, bucket, directory)
+	if compressObjects == true {
+		uri = fmt.Sprintf(`gs://%s/%s/*.json.gz`, bucket, directory)
+	}
+	gcsRef := bigquery.NewGCSReference(uri)
+	gcsRef.DestinationFormat = "NEWLINE_DELIMITED_JSON"
+
+	if compressObjects == true {
+		gcsRef.Compression = "GZIP"
+	}
+
+	extractor := table.ExtractorTo(gcsRef)
+	job, err := extractor.Run(ctx)
+	CheckBigQueryJob(job, err)
+	config, err := job.Config()
+	if err != nil {
+		log.Fatal("→ BQ →→ Error obtaining config", err)
+	}
+	tempBucket := config.(*bigquery.ExtractConfig).Dst
+	log.Println("→ GCS →→ Temporal URIs", tempBucket.URIs)
+	return tempBucket.URIs
+}
+
 func CheckBigQueryJob(job *bigquery.Job, err error) {
 	if err != nil {
 		log.Fatal("→ BQ →→ Error creating job", err)

@@ -19,6 +19,10 @@ func init() {
 	mergeMultipleCsv.Flags().StringP("project-id", "", "", "The destination project id")
 	mergeMultipleCsv.MarkFlagRequired("project-id")
 
+	mergeMultipleCsv.Flags().StringP("gcs-destination-format", "", "CSV", "CSV or JSON")
+
+	mergeMultipleCsv.Flags().StringP("gcs-compress-objects", "", "false", "Enable to compress destination objects (GZIP)")
+
 	mergeMultipleCsv.Flags().StringP("gcs-source-bucket", "", "", "The source bucket")
 	mergeMultipleCsv.MarkFlagRequired("gcs-source-bucket")
 
@@ -40,7 +44,7 @@ func init() {
 }
 
 var mergeMultipleCsv = &cobra.Command{
-	Use:   "merge-multiple-csv",
+	Use:   "merge-multiple-objects",
 	Short: "Merge all the CSVs exported in a bucket into another one and delete the previous",
 	Long: `Merge all the CSVs exported in a bucket into another one and delete the previous
 Format:
@@ -55,18 +59,20 @@ Format:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("→ Executing merge csv command")
-		params := types.GCSMergeMultipleCsvConfig{
+		params := types.GCSMergeMultipleObjectsConfig{
 			ProjectId:            mergeMultipleCsvViper.GetString("project-id"),
 			SourceBucket:         mergeMultipleCsvViper.GetString("gcs-source-bucket"),
 			SourceDirectory:      mergeMultipleCsvViper.GetString("gcs-source-bucket-directory"),
 			DestinationBucket:    mergeMultipleCsvViper.GetString("gcs-destination-bucket"),
 			DestinationDirectory: mergeMultipleCsvViper.GetString("gcs-destination-bucket-directory"),
+			DestinationFormat:    mergeMultipleCsvViper.GetString("gcs-destination-format"),
+			CompressObject:       mergeMultipleCsvViper.GetBool("gcs-compress-objects"),
 			MergedObjectName:     mergeMultipleCsvViper.GetString("gcs-source-merged-object-name"),
 			DstObjectName:        mergeMultipleCsvViper.GetString("gcs-destination-object-name"),
 		}
 		log.Printf("→ Config [%s]", params)
 
-		gcs.MergeMultipleCsv(params)
+		gcs.MergeMultipleObjects(params)
 		log.Println("→ Executing merge csv finished")
 	},
 }

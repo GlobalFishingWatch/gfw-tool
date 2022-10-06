@@ -4,9 +4,11 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -129,6 +131,9 @@ func MergeObjects(ctx context.Context, bucket string, objectNames []string, merg
 	client := CreateGCSClient(ctx)
 	defer client.Close()
 	bkt := GetBucket(client, bucket)
+
+	CreateObjectIfNotExists(ctx, bucket, mergedObjectName, "")
+
 	for _, name := range objectNames {
 		if name != mergedObjectName {
 			src1 := bkt.Object(name)
@@ -141,6 +146,28 @@ func MergeObjects(ctx context.Context, bucket string, objectNames []string, merg
 			}
 			log.Printf("→ GCS →→ New composite object %v was created by combining %v and %v\n", mergedObjectName, name, mergedObjectName)
 			DeleteObject(ctx, bucket, name)
+		}
+	}
+}
+
+func CreateObjectIfNotExists(ctx context.Context, bucket string, object string, content string) {
+	client := CreateGCSClient(ctx)
+	defer client.Close()
+	bkt := GetBucket(client, bucket)
+
+	ow := bkt.Object(object).If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
+	if _, err := ow.Write([]byte(content)); err != nil {
+		log.Fatalf("→ GCS →→ Error writting the object [%s]", object)
+	}
+	if err := ow.Close(); err != nil {
+		switch e := err.(type) {
+		case *googleapi.Error:
+			if e.Code == http.StatusPreconditionFailed {
+				log.Printf("→ GCS →→ The object with name [%s] already exists!", object)
+			}
+			// And others.
+		default:
+			log.Fatalf("→ GCS →→ Error: %s", err)
 		}
 	}
 }

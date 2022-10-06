@@ -23,6 +23,10 @@ func init() {
 
 	exportBQtoGCS.Flags().StringP("bq-temporal-dataset", "", "0_ttl24h", "The dataset to create a temporal table")
 
+	exportBQtoGCS.Flags().StringP("gcs-destination-format", "", "CSV", "CSV or JSON")
+
+	exportBQtoGCS.Flags().StringP("gcs-compress-objects", "", "false", "Enable to compress destination objects (GZIP)")
+
 	exportBQtoGCS.Flags().StringP("gcs-bucket", "", "", "The destination bucket")
 	exportBQtoGCS.MarkFlagRequired("gcs-bucket")
 
@@ -41,8 +45,8 @@ func init() {
 
 var exportBQtoGCS = &cobra.Command{
 	Use:   "export-bq-to-gcs",
-	Short: "Export data from BigQuery (query) to a GCS bucket (CSV)",
-	Long: `Export data from Biquery (query) to a GCS Bucket (CSV)
+	Short: "Export data from BigQuery (query) to a GCS bucket (CSV or JSON)",
+	Long: `Export data from Biquery (query) to a GCS Bucket (CSV or JSON)
 Format:
 	gfw-tools bq2gcs export-bq-to-gcs \ 
 		--project-id= \
@@ -52,7 +56,6 @@ Format:
 		--gcs-bucket-destination-object-name=
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("→ Executing export data from bq to gcs (csv) command")
 		params := types.BQExportDataToGCSConfig{
 			ProjectId:            exportBqToGcsViper.GetString("project-id"),
 			Query:                exportBqToGcsViper.GetString("bq-query"),
@@ -60,12 +63,15 @@ Format:
 			Bucket:               exportBqToGcsViper.GetString("gcs-bucket"),
 			BucketDirectory:      exportBqToGcsViper.GetString("gcs-bucket-directory"),
 			BucketDstObjectName:  exportBqToGcsViper.GetString("gcs-bucket-destination-object-name"),
+			DestinationFormat:    exportBqToGcsViper.GetString("gcs-destination-format"),
+			CompressObjects:      exportBqToGcsViper.GetBool("gcs-compress-objects"),
 			HeadersEnable:        exportBqToGcsViper.GetBool("gcs-headers-enable"),
 			ExportHeadersAsAFile: exportBqToGcsViper.GetBool("gcs-export-headers-as-a-file"),
 		}
 		log.Printf("→ Config: [%s]", params)
 
+		log.Printf("→ Executing export data from bq to gcs (%s) command", params.DestinationFormat)
 		bq2gcs.ExportDataFromBigQueryQueryToGCS(params)
-		log.Println("→ Executing export data from bq to gcs (csv) finished")
+		log.Printf("→ Executing export data from bq to gcs (%s) finished", params.DestinationFormat)
 	},
 }

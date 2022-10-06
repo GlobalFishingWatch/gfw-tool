@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"log"
 )
 
 func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 	ctx := context.Background()
-	if params.ExportHeadersAsAFile {
+
+	validateParams(params)
+
+	if params.ExportHeadersAsAFile && params.DestinationFormat == "CSV" {
 		temporalHeadersQuery := fmt.Sprintf(`%s LIMIT 0`, params.Query)
 		temporalHeadersTableId := common.CreateTemporalTableFromQuery(
 			ctx, params.ProjectId,
@@ -17,6 +21,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 			temporalHeadersQuery,
 			"_headers",
 		)
+
 		common.ExportTemporalTableToCsvInGCS(
 			ctx,
 			params.ProjectId,
@@ -45,13 +50,41 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 		params.TemporalDataset,
 		params.Query, "",
 	)
-	common.ExportTemporalTableToCsvInGCS(
-		ctx,
-		params.ProjectId,
-		params.TemporalDataset,
-		temporalTableId,
-		params.Bucket,
-		params.BucketDirectory,
-		params.HeadersEnable,
-	)
+
+	if params.DestinationFormat == "CSV" {
+		common.ExportTemporalTableToCsvInGCS(
+			ctx,
+			params.ProjectId,
+			params.TemporalDataset,
+			temporalTableId,
+			params.Bucket,
+			params.BucketDirectory,
+			params.HeadersEnable,
+		)
+	} else if params.DestinationFormat == "JSON" {
+		common.ExportTemporalTableToJSONInGCS(
+			ctx,
+			params.ProjectId,
+			params.TemporalDataset,
+			temporalTableId,
+			params.Bucket,
+			params.BucketDirectory,
+			params.CompressObjects,
+		)
+	} else {
+		log.Fatal("Destination format not allowed")
+	}
+
+}
+
+func validateParams(params types.BQExportDataToGCSConfig) {
+	if params.DestinationFormat != "CSV" && params.DestinationFormat != "JSON" {
+		log.Fatal("Destination format should be JSON or CSV")
+	}
+	if params.DestinationFormat != "CSV" && params.ExportHeadersAsAFile == true {
+		log.Fatal("Export headers as a file flags is just available for destination format CSV")
+	}
+	if params.DestinationFormat != "JSON" && params.CompressObjects == true {
+		log.Fatal("Compress objects is just available for JSON format")
+	}
 }
