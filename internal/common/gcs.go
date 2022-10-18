@@ -140,7 +140,7 @@ func MergeObjects(ctx context.Context, bucket string, objectNames []string, merg
 			src2 := bkt.Object(mergedObjectName)
 			dst := bkt.Object(mergedObjectName)
 
-			_, err := dst.ComposerFrom(src1, src2).Run(ctx)
+			_, err := dst.ComposerFrom(src2, src1).Run(ctx)
 			if err != nil {
 				log.Fatalf("→ GCS →→ ComposerFrom: %v", err)
 			}
