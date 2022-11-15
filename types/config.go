@@ -25,6 +25,29 @@ type BQ2ESImportConfig struct {
 	OnError                string
 }
 
+type BQCreateTableConfig struct {
+	Query     string
+	ProjectId string
+	DatasetId string
+	TableName string
+}
+
+type BQCreateTemporalTableConfig struct {
+	Query         string
+	ProjectId     string
+	TempDatasetId string
+	TempTableName string
+	TTL           int
+}
+
+type BQRawQueryConfig struct {
+	Query              string
+	ProjectId          string
+	DestinationTable   string
+	DestinationDataset string
+	WriteDisposition   string
+}
+
 type GCSExportDataToBigQueryConfig struct {
 	ProjectId          string
 	BucketUri          string

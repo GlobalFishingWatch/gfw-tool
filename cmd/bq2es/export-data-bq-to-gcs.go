@@ -39,9 +39,9 @@ var exportBq2EsCmd = &cobra.Command{
 	Short: "Export data from BigQuery to Elasticsearch",
 	Long: `Export data from BigQuery to Elasticsearch
 Format:
-	bq2es-tool export --project-id= --query= --elastic-search-url= --index-name= --normalize=
+	gfw-tools bq2es export --project-id= --query= --elastic-search-url= --index-name= --normalize=
 Example:
-	bq2es-tool export 
+	gfw-tools bq2es export
 		--project-id=world-fishing-827 
 		--query="SELECT * FROM vessels" 
 		--normalize=shipname
