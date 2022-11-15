@@ -13,6 +13,18 @@ type BQExportDataToGCSConfig struct {
 	ExportHeadersAsAFile bool
 }
 
+type GCSExportDataToBigQueryConfig struct {
+	ProjectId          string
+	BucketUri          string
+	SourceDataFormat   string
+	DatasetName        string
+	TableName          string
+	Mode               string
+	Schema             string
+	PartitionTimeField string
+	ClusteredFields    string
+}
+
 type GCSMergeMultipleObjectsConfig struct {
 	ProjectId            string
 	SourceBucket         string
