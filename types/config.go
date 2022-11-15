@@ -47,3 +47,9 @@ type GCSCopyObjectConfig struct {
 	DstDirectory  string
 	DstObjectName string
 }
+
+type GCSDeleteObjectConfig struct {
+	ProjectId  string
+	BucketName string
+	ObjectName string
+}
