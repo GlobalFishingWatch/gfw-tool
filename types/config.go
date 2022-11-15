@@ -13,6 +13,18 @@ type BQExportDataToGCSConfig struct {
 	ExportHeadersAsAFile bool
 }
 
+type BQ2ESImportConfig struct {
+	Query                  string
+	ElasticSearchUrl       string
+	ProjectId              string
+	IndexName              string
+	ImportMode             string
+	Normalize              string
+	NormalizedPropertyName string
+	NormalizeEndpoint      string
+	OnError                string
+}
+
 type GCSExportDataToBigQueryConfig struct {
 	ProjectId          string
 	BucketUri          string
@@ -58,4 +70,10 @@ type GCSCopyObjectConfig struct {
 	DstBucket     string
 	DstDirectory  string
 	DstObjectName string
+}
+
+type GCSDeleteObjectConfig struct {
+	ProjectId  string
+	BucketName string
+	ObjectName string
 }

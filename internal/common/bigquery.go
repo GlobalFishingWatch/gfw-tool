@@ -21,6 +21,32 @@ func CreateBigQueryClient(ctx context.Context, projectId string) *bigquery.Clien
 	return client
 }
 
+func MakeQuery(
+	ctx context.Context,
+	projectId string,
+	sqlQuery string,
+) *bigquery.RowIterator {
+	log.Println("→ BQ →→ Making query to get data from bigQuery")
+	bqClient := CreateBigQueryClient(ctx, projectId)
+	query := bqClient.Query(sqlQuery)
+	query.AllowLargeResults = true
+	it, err := query.Read(ctx)
+	if err != nil {
+		log.Fatalf("→ BQ →→ Error counting rows: %v", err)
+	}
+	return it
+}
+
+func GetColumnNamesFromTableSchema(
+	schema bigquery.Schema,
+) []string {
+	var columnNames = make([]string, 0)
+	for i := 0; i < len(schema); i++ {
+		columnNames = append(columnNames, schema[i].Name)
+	}
+	return columnNames
+}
+
 func CreateTemporalTableFromQuery(
 	ctx context.Context,
 	projectId string,
