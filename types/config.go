@@ -13,6 +13,18 @@ type BQExportDataToGCSConfig struct {
 	ExportHeadersAsAFile bool
 }
 
+type BQ2ESImportConfig struct {
+	Query                  string
+	ElasticSearchUrl       string
+	ProjectId              string
+	IndexName              string
+	ImportMode             string
+	Normalize              string
+	NormalizedPropertyName string
+	NormalizeEndpoint      string
+	OnError                string
+}
+
 type GCSMergeMultipleObjectsConfig struct {
 	ProjectId            string
 	SourceBucket         string
