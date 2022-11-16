@@ -3,7 +3,7 @@ module github.com/GlobalFishingWatch/gfw-tool
 go 1.19
 
 require (
-	cloud.google.com/go/bigquery v1.42.0
+	cloud.google.com/go/bigquery v1.43.0
 	cloud.google.com/go/storage v1.28.0
 	github.com/cespare/reflex v0.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.0

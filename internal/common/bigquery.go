@@ -51,8 +51,10 @@ func CreateTemporalTableFromQuery(
 	ctx context.Context,
 	projectId string,
 	datasetId string,
+	tableName string,
 	sqlStatement string,
-	subfix string,
+	ttl int,
+	suffix string,
 ) string {
 	log.Println("→ BQ →→ Creating temporal table")
 
@@ -63,10 +65,34 @@ func CreateTemporalTableFromQuery(
 	query := bqClient.Query(sqlStatement)
 	query.AllowLargeResults = true
 	currentTime := time.Now()
-	temporalTableName := fmt.Sprintf("%s_%s%s", uuid.NewV4(), currentTime.Format("2006_01_02_15_04"), subfix)
+
+	temporalTableName := ""
+	if tableName != "" {
+		temporalTableName = tableName
+	} else {
+		temporalTableName = fmt.Sprintf("%s_%s%s", uuid.NewV4(), currentTime.Format("2006_01_02_15_04"), suffix)
+	}
+
 	log.Printf("→ BQ →→ Temporal table name: %s", temporalTableName)
-	dstTable := bqClient.Dataset(datasetId).Table(string(temporalTableName))
-	err := dstTable.Create(ctx, &bigquery.TableMetadata{})
+	dstTable := GetTable(
+		ctx,
+		projectId,
+		datasetId,
+		tableName,
+	)
+
+	var tableMetadata *bigquery.TableMetadata
+
+	var ttlParsed time.Duration
+	if ttl == 0 {
+		ttlParsed = 12 * time.Hour
+	} else {
+		ttlParsed = time.Duration(ttl) * time.Hour
+	}
+
+	tableMetadata = &bigquery.TableMetadata{ExpirationTime: time.Now().Add(ttlParsed)}
+
+	err := dstTable.Create(ctx, tableMetadata)
 	if err != nil {
 		log.Fatal("→ BQ →→ Error creating temporary table", err)
 	}
@@ -97,8 +123,10 @@ func CreateTable(
 		log.Fatalf("→ BQ →→ Error getting Schema from JSON %s", err)
 	}
 
-	metaData := &bigquery.TableMetadata{
-		Schema: schemaParsed,
+	metaData := &bigquery.TableMetadata{}
+
+	if schema != "" {
+		metaData.Schema = schemaParsed
 	}
 
 	if partitionTimeField != "" {

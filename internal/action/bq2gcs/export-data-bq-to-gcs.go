@@ -16,9 +16,12 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 	if params.ExportHeadersAsAFile && params.DestinationFormat == "CSV" {
 		temporalHeadersQuery := fmt.Sprintf(`%s LIMIT 0`, params.Query)
 		temporalHeadersTableId := common.CreateTemporalTableFromQuery(
-			ctx, params.ProjectId,
+			ctx,
+			params.ProjectId,
 			params.TemporalDataset,
+			"",
 			temporalHeadersQuery,
+			0,
 			"_headers",
 		)
 
@@ -48,7 +51,10 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 		ctx,
 		params.ProjectId,
 		params.TemporalDataset,
-		params.Query, "",
+		"",
+		params.Query,
+		0,
+		"",
 	)
 
 	if params.DestinationFormat == "CSV" {

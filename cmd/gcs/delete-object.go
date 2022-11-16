@@ -33,9 +33,9 @@ var deleteObjectCmd = &cobra.Command{
 	Short: "Delete object",
 	Long: `Delete object
 Format:
-	gcs-tool delete-object --project-id=[id] --bucket-name=[name] --object-name=[name]
+	gcs-tools delete-object --project-id=[id] --bucket-name=[name] --object-name=[name]
 Example:
-	gcs-tool delete-object \
+	gcs-tools delete-object \
 		--project-id=world-fishing-827 \
 		--bucket-name=test-alvaro-spire \
 		--object-name=scheduled__2020-09-23T08:56:00+00:00`,
