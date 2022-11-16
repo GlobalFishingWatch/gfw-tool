@@ -4,6 +4,7 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/bq2es"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/bq2gcs"
+	"github.com/GlobalFishingWatch/gfw-tool/cmd/elasticsearch"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/gcs"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/gcs2bq"
 	"github.com/spf13/cobra"
@@ -20,6 +21,7 @@ func init() {
 	rootCmd.AddCommand(bigquery.Bigquery)
 	rootCmd.AddCommand(bq2es.Bq2Es)
 	rootCmd.AddCommand(bq2gcs.Bq2Gcs)
+	rootCmd.AddCommand(elasticsearch.Elasticsearch)
 	rootCmd.AddCommand(gcs.Gcs)
 	rootCmd.AddCommand(gcs2bq.Gcs2Bq)
 }

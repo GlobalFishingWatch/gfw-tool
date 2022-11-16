@@ -10,8 +10,6 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/dustin/go-humanize"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"google.golang.org/api/iterator"
 	"log"
 	"net/http"
@@ -21,8 +19,6 @@ import (
 	"sync"
 	"time"
 )
-
-var esClient *elasticsearch.Client
 
 var onErrorAction string
 var temporalIndexName string
@@ -34,15 +30,14 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 	validateFlags(params)
 
 	ctx := context.Background()
-	esClient = common.CreateElasticSearchClient(params.ElasticSearchUrl)
 
 	onErrorAction = params.OnError
 
-	indexExists := common.CheckIfIndexExists(esClient, params.IndexName)
+	indexExists := common.CheckIfIndexExists(params.ElasticSearchUrl, params.IndexName)
 	if indexExists == true && onErrorAction == "reindex" {
 		log.Println("→ Reindexing index to avoid losing data")
 		temporalIndexName = params.IndexName + "-" + time.Now().UTC().Format("2006-01-02") + "-reindexed"
-		reindex(params.IndexName, temporalIndexName)
+		common.Reindex(params.ElasticSearchUrl, params.IndexName, temporalIndexName)
 	}
 
 	ch := make(chan map[string]bigquery.Value, 500)
@@ -52,7 +47,7 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 
 	log.Println("→ Importing results to elasticsearch (Bulk)")
 	if strings.TrimRight(params.ImportMode, "\n") == "recreate" {
-		recreateIndex(params.IndexName)
+		common.RecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
 	const threads = 15
@@ -67,7 +62,7 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, ch chan map[string]bigquery.Value) {
-			importBulk(params.IndexName, params.ImportMode, params.Normalize, params.NormalizedPropertyName, params.NormalizeEndpoint, Batch, start, ch)
+			importBulk(params.ElasticSearchUrl, params.IndexName, params.ImportMode, params.Normalize, params.NormalizedPropertyName, params.NormalizeEndpoint, Batch, start, ch)
 			wg.Done()
 		}(&wg, ch)
 	}
@@ -167,6 +162,7 @@ func toMapJsonNested(value []bigquery.Value, schema bigquery.Schema) map[string]
 
 // Elastic Search Functions
 func importBulk(
+	elasticsearchUrl string,
 	indexName string,
 	importMode string,
 	normalize string,
@@ -236,7 +232,7 @@ func importBulk(
 		if numItems == Batch {
 			currentBatch++
 			totalItemsImported += numItems
-			errors, items, indexed := executeBulk(indexName, &buf)
+			errors, items, indexed := executeBulk(elasticsearchUrl, indexName, &buf)
 			numErrors += errors
 			numItems += items
 			numIndexed += indexed
@@ -250,7 +246,7 @@ func importBulk(
 	if numItems > 0 {
 		currentBatch++
 		totalItemsImported += numItems
-		errors, items, indexed := executeBulk(indexName, &buf)
+		errors, items, indexed := executeBulk(elasticsearchUrl, indexName, &buf)
 		numErrors += errors
 		numItems += items
 		numIndexed += indexed
@@ -262,7 +258,7 @@ func importBulk(
 	createReport(start, numErrors, numIndexed)
 }
 
-func executeBulk(indexName string, buf *bytes.Buffer) (int, int, int) {
+func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (int, int, int) {
 	var (
 		raw        map[string]interface{}
 		blk        *types.BulkResponse
@@ -272,16 +268,16 @@ func executeBulk(indexName string, buf *bytes.Buffer) (int, int, int) {
 	)
 	log.Printf("Batch [%d]", currentBatch)
 
-	res, err := esClient.Bulk(bytes.NewReader(buf.Bytes()), esClient.Bulk.WithIndex(indexName))
-	if err != nil {
-		log.Printf("Error importing Bulk")
-		executeOnErrorAction(indexName)
-		log.Fatalf("Failure indexing Batch %d: %s", currentBatch, err)
-	}
-
+	res := common.ExecuteBulk(
+		elasticsearchUrl,
+		indexName,
+		buf,
+		currentBatch,
+		onErrorAction,
+	)
 	if res.IsError() {
 		numErrors += numItems
-		executeOnErrorAction(indexName)
+		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Printf("Response error: [%s]", res.Body)
 		if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 			log.Fatalf("Failure to to parse response body: %s", err)
@@ -294,14 +290,14 @@ func executeBulk(indexName string, buf *bytes.Buffer) (int, int, int) {
 	}
 
 	if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
-		executeOnErrorAction(indexName)
+		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Fatalf("Failure to to parse response body: %s", err)
 	}
 
 	for _, d := range blk.Items {
 		if d.Index.Status > 201 {
 			numErrors++
-			executeOnErrorAction(indexName)
+			common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 			log.Fatalf("  Error: [%d]: %s: %s: %s: %s",
 				d.Index.Status,
 				d.Index.Error.Type,
@@ -314,79 +310,6 @@ func executeBulk(indexName string, buf *bytes.Buffer) (int, int, int) {
 	}
 	res.Body.Close()
 	return numErrors, numItems, numIndexed
-}
-
-func executeOnErrorAction(indexName string) {
-	if onErrorAction == "delete" {
-		common.DeleteIndex(esClient, indexName)
-	}
-	if onErrorAction == "reindex" {
-		common.DeleteIndex(esClient, indexName)
-		reindex(temporalIndexName, indexName)
-		common.DeleteIndex(esClient, temporalIndexName)
-	}
-}
-
-func recreateIndex(indexName string) {
-	log.Printf("→ ES →→ Recreating index with name %v\n", indexName)
-	common.DeleteIndex(esClient, indexName)
-	res, err := esClient.Indices.Create(indexName)
-	if err != nil {
-		log.Fatalf("→ ES →→ Cannot create index: %s", err)
-	}
-	if res.IsError() {
-		log.Fatalf("→ ES →→ Cannot create index: %s", res)
-	}
-}
-
-func reindex(sourceIndexName string, destinationIndexName string) {
-	existsDestinationIndex := common.CheckIfIndexExists(esClient, destinationIndexName)
-	if existsDestinationIndex == true {
-		common.DeleteIndex(esClient, destinationIndexName)
-	}
-
-	log.Printf("→ ES →→ Reindexing from %s to %s\n", sourceIndexName, destinationIndexName)
-	reindexBody := map[string]map[string]string{
-		"source": {"index": sourceIndexName},
-		"dest":   {"index": destinationIndexName},
-	}
-	body, err := json.Marshal(reindexBody)
-	if err != nil {
-		log.Fatalf("→ ES →→ Error creating body to reindex %s", err)
-	}
-
-	res, err := esClient.Reindex(bytes.NewReader(body), func(request *esapi.ReindexRequest) {
-		waitForCompletion := false
-		request.WaitForCompletion = &waitForCompletion
-	})
-	if err != nil {
-		log.Fatalf("→ ES →→ Error requesting reindex %s", err)
-	}
-	if res.IsError() {
-		log.Fatalf("→ ES →→ Cannot reindex: %s", res)
-	}
-
-	responseBody := common.ParseEsAPIResponse(res)
-	taskId := responseBody["task"].(string)
-	log.Printf("→ ES →→ Reindex process started async. Task id: %s \n", taskId)
-
-	for {
-		res, err := esClient.Tasks.Get(taskId)
-		if err != nil {
-			log.Fatalf("→ ES →→ Error requesting reindex %s", err)
-		}
-		if res.IsError() {
-			log.Fatalf("→ ES →→ Cannot reindex: %s", res)
-		}
-		responseBody = common.ParseEsAPIResponse(res)
-		taskStatus := responseBody["completed"].(bool)
-		if taskStatus == true {
-			break
-		}
-		time.Sleep(5000 * time.Millisecond)
-	}
-	log.Println("→ ES →→ Reindex process completed")
-	common.DeleteIndex(esClient, sourceIndexName)
 }
 
 func preparePayload(buf *bytes.Buffer, document map[string]bigquery.Value) {

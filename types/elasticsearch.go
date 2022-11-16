@@ -18,3 +18,7 @@ type BulkResponse struct {
 		} `json:"index"`
 	} `json:"items"`
 }
+
+type Index struct {
+	Index string `json:"index"`
+}

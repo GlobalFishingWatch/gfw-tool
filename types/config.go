@@ -100,3 +100,27 @@ type GCSDeleteObjectConfig struct {
 	BucketName string
 	ObjectName string
 }
+
+type ElasticsearchAddAliasConfig struct {
+	IndexName        string
+	Alias            string
+	ElasticSearchUrl string
+}
+
+type ElasticsearchCreateIndexConfig struct {
+	IndexName        string
+	Mapping          string
+	Settings         string
+	ElasticSearchUrl string
+}
+
+type ElasticsearchDeleteIndexConfig struct {
+	IndexName        string
+	ElasticSearchUrl string
+}
+
+type ElasticsearchDeleteIndicesByPrefixConfig struct {
+	Prefix           string
+	NoDeleteIndex    string
+	ElasticSearchUrl string
+}
