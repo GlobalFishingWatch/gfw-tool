@@ -6,7 +6,7 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
 
-func DeleteObject(params types.GCSDeleteObjectConfig) {
+func GCSDeleteObject(params types.GCSDeleteObjectConfig) {
 	ctx := context.Background()
 	common.GCSDeleteObject(
 		ctx,

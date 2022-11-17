@@ -49,7 +49,7 @@ Example:
 		}
 		log.Printf("→ Config [%s]", params)
 
-		gcs.DeleteObject(params)
+		gcs.GCSDeleteObject(params)
 		log.Println("→ Execution Delete Object command completed")
 	},
 }

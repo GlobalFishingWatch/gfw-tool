@@ -21,6 +21,6 @@ func GCSCopyObject(params types.GCSCopyBucketDirectoryConfig) {
 	gcs.CopyBucketDirectory(params)
 }
 
-func GCSGCSDeleteObject(params types.GCSGCSDeleteObjectConfig) {
+func GCSGCSDeleteObject(params types.GCSDeleteObjectConfig) {
 	gcs.GCSDeleteObject(params)
 }
