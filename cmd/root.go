@@ -7,6 +7,7 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/elasticsearch"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/gcs"
 	"github.com/GlobalFishingWatch/gfw-tool/cmd/gcs2bq"
+	"github.com/GlobalFishingWatch/gfw-tool/cmd/postgres"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -24,6 +25,7 @@ func init() {
 	rootCmd.AddCommand(elasticsearch.Elasticsearch)
 	rootCmd.AddCommand(gcs.Gcs)
 	rootCmd.AddCommand(gcs2bq.Gcs2Bq)
+	rootCmd.AddCommand(postgres.Postgres)
 }
 
 func Execute() {

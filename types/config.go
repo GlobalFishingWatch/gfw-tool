@@ -124,3 +124,33 @@ type ElasticsearchDeleteIndicesByPrefixConfig struct {
 	NoDeleteIndex    string
 	ElasticSearchUrl string
 }
+
+type PostgresCreateIndexConfig struct {
+	IndexName string
+	TableName string
+	Column    string
+}
+
+type PostgresCreateViewConfig struct {
+	TableName string
+	ViewName  string
+}
+
+type PostgresDeleteTableConfig struct {
+	TableName string
+}
+
+type PostgresDeleteViewConfig struct {
+	ViewName string
+}
+
+type PostgresExecuteRawSqlConfig struct {
+	Sql string
+}
+
+type PostgresConfig struct {
+	Addr     string
+	User     string
+	Password string
+	Database string
+}
