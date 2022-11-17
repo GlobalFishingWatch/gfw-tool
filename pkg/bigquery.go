@@ -13,6 +13,6 @@ func BigQueryCreateTemporalTable(params types.BQCreateTemporalTableConfig) {
 	bigquery.ExecuteCreateTemporalTable(params)
 }
 
-func BigQueryExecuteRawQuery(params types.BQRawQueryConfig) {
-	bigquery.ExecuteRawQuery(params)
+func BigQueryExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
+	return bigquery.ExecuteRawQuery(params)
 }
