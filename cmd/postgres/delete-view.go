@@ -50,14 +50,14 @@ Example:
 		log.Println("→ Executing delete view command")
 
 		params := types.PostgresDeleteViewConfig{
-			ViewName: viper.GetString("view-name"),
+			ViewName: deleteViewViper.GetString("view-name"),
 		}
 
 		postgresConfig := types.PostgresConfig{
-			Addr:     viper.GetString("postgres-address"),
-			User:     viper.GetString("postgres-user"),
-			Password: viper.GetString("postgres-password"),
-			Database: viper.GetString("postgres-database"),
+			Addr:     deleteViewViper.GetString("postgres-address"),
+			User:     deleteViewViper.GetString("postgres-user"),
+			Password: deleteViewViper.GetString("postgres-password"),
+			Database: deleteViewViper.GetString("postgres-database"),
 		}
 
 		postgres.DeleteView(params, postgresConfig)

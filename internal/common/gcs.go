@@ -21,7 +21,9 @@ func CreateGCSClient(ctx context.Context) *storage.Client {
 	return client
 }
 
-func GetBucket(client *storage.Client, bucket string) *storage.BucketHandle {
+func GetBucket(ctx context.Context, bucket string) *storage.BucketHandle {
+	client := CreateGCSClient(ctx)
+	defer client.Close()
 	return client.Bucket(bucket)
 }
 
@@ -34,11 +36,9 @@ func CopyGCSObject(
 	dstDirectory string,
 	dstObjectName string,
 ) {
-	client := CreateGCSClient(ctx)
-	defer client.Close()
-
+	sourceBucket := GetBucket(ctx, srcBucket)
 	srcObject := srcDirectory + "/" + srcObjectName
-	src := client.Bucket(srcBucket).Object(srcObject)
+	src := sourceBucket.Object(srcObject)
 
 	if dstBucket == "" {
 		dstBucket = srcBucket
@@ -48,8 +48,9 @@ func CopyGCSObject(
 		dstDirectory = srcDirectory
 	}
 
+	destinationBucket := GetBucket(ctx, dstBucket)
 	dstObject := dstDirectory + "/" + dstObjectName
-	dst := client.Bucket(dstBucket).Object(dstObject)
+	dst := destinationBucket.Object(dstObject)
 
 	log.Printf("→ GCS →→ Copy file from [%s/%s] to [%s/%s]", srcBucket, srcObject, dstBucket, dstObject)
 	if _, err := dst.CopierFrom(src).Run(ctx); err != nil {
@@ -65,7 +66,6 @@ func UploadLocalFileToABucket(
 	bucketDirectory string,
 	objectName string,
 ) {
-
 	log.Printf("→ GCS →→ Uploading file to [%s/%s]", bucketDirectory, objectName)
 	f, err := os.Open(localDirectory + "/" + localFilename)
 	if err != nil {
@@ -79,7 +79,7 @@ func UploadLocalFileToABucket(
 	client := CreateGCSClient(ctx)
 	defer client.Close()
 
-	dstBkt := GetBucket(client, bucket)
+	dstBkt := GetBucket(ctx, bucket)
 	o := dstBkt.Object(bucketDirectory + "/" + objectName)
 
 	wc := o.NewWriter(ctx)
@@ -96,12 +96,8 @@ func ListGCSBucketObjects(
 	bucket string,
 	bucketDirectory string,
 ) []string {
-	ctx = context.Background()
 
-	client := CreateGCSClient(ctx)
-	defer client.Close()
-
-	bkt := client.Bucket(bucket)
+	bkt := GetBucket(ctx, bucket)
 	log.Printf("→ GCS →→ Listing objects")
 
 	prefix := fmt.Sprintf(`%s/`, bucketDirectory)
@@ -128,9 +124,7 @@ func ListGCSBucketObjects(
 }
 
 func MergeObjects(ctx context.Context, bucket string, objectNames []string, mergedObjectName string) {
-	client := CreateGCSClient(ctx)
-	defer client.Close()
-	bkt := GetBucket(client, bucket)
+	bkt := GetBucket(ctx, bucket)
 
 	CreateObjectIfNotExists(ctx, bucket, mergedObjectName, "")
 
@@ -151,9 +145,7 @@ func MergeObjects(ctx context.Context, bucket string, objectNames []string, merg
 }
 
 func CreateObjectIfNotExists(ctx context.Context, bucket string, object string, content string) {
-	client := CreateGCSClient(ctx)
-	defer client.Close()
-	bkt := GetBucket(client, bucket)
+	bkt := GetBucket(ctx, bucket)
 
 	ow := bkt.Object(object).If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
 	if _, err := ow.Write([]byte(content)); err != nil {
@@ -174,9 +166,7 @@ func CreateObjectIfNotExists(ctx context.Context, bucket string, object string, 
 
 func DeleteObject(ctx context.Context, bucket string, object string) {
 	log.Printf("→ GCS →→ Deleting object [%s/%s]", bucket, object)
-	client := CreateGCSClient(ctx)
-	defer client.Close()
-	bkt := GetBucket(client, bucket)
+	bkt := GetBucket(ctx, bucket)
 	obj := bkt.Object(object)
 	if err := obj.Delete(ctx); err != nil {
 		log.Fatalf(" → GCS →→ Cannot delete object with name %s", object)

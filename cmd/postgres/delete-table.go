@@ -50,14 +50,14 @@ Example:
 		log.Println("→ Executing delete table command")
 
 		params := types.PostgresDeleteTableConfig{
-			TableName: viper.GetString("table-name"),
+			TableName: deleteTableViper.GetString("table-name"),
 		}
 
 		postgresConfig := types.PostgresConfig{
-			Addr:     viper.GetString("postgres-address"),
-			User:     viper.GetString("postgres-user"),
-			Password: viper.GetString("postgres-password"),
-			Database: viper.GetString("postgres-database"),
+			Addr:     deleteTableViper.GetString("postgres-address"),
+			User:     deleteTableViper.GetString("postgres-user"),
+			Password: deleteTableViper.GetString("postgres-password"),
+			Database: deleteTableViper.GetString("postgres-database"),
 		}
 
 		postgres.DeleteTable(params, postgresConfig)

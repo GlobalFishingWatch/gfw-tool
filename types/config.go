@@ -154,3 +154,25 @@ type PostgresConfig struct {
 	Password string
 	Database string
 }
+
+type BQ2PSQLExportConfig struct {
+	Query     string
+	ProjectId string
+	TableName string
+	Schema    string
+}
+
+type BQ2PSQLExportCSVConfig struct {
+	Query                string
+	ProjectId            string
+	TemporalDataset      string
+	TemporalBucket       string
+	DestinationTableName string
+}
+
+type CloudSqlConfig struct {
+	Database string
+	Instance string
+	Table    string
+	Columns  string
+}

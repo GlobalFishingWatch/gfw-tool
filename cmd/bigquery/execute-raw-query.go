@@ -46,11 +46,11 @@ Example:
 		log.Println("→ Executing raw query command")
 
 		params := types.BQRawQueryConfig{
-			Query:              viper.GetString("query"),
-			ProjectId:          viper.GetString("project-id"),
-			DestinationTable:   viper.GetString("destination-table"),
-			DestinationDataset: viper.GetString("destination-dataset"),
-			WriteDisposition:   viper.GetString("write-disposition"),
+			Query:              executeRawQueryViper.GetString("query"),
+			ProjectId:          executeRawQueryViper.GetString("project-id"),
+			DestinationTable:   executeRawQueryViper.GetString("destination-table"),
+			DestinationDataset: executeRawQueryViper.GetString("destination-dataset"),
+			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
 		}
 		log.Println(params)
 

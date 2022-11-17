@@ -12,7 +12,7 @@ var createViewViper *viper.Viper
 
 func init() {
 
-	createIndexViper = viper.New()
+	createViewViper = viper.New()
 
 	Postgres.AddCommand(createViewCmd)
 
@@ -53,15 +53,15 @@ Example:
 		log.Println("→ Executing Create view command")
 
 		params := types.PostgresCreateViewConfig{
-			TableName: viper.GetString("table-name"),
-			ViewName:  viper.GetString("view-name"),
+			TableName: createViewViper.GetString("table-name"),
+			ViewName:  createViewViper.GetString("view-name"),
 		}
 
 		postgresConfig := types.PostgresConfig{
-			Addr:     viper.GetString("postgres-address"),
-			User:     viper.GetString("postgres-user"),
-			Password: viper.GetString("postgres-password"),
-			Database: viper.GetString("postgres-database"),
+			Addr:     createViewViper.GetString("postgres-address"),
+			User:     createViewViper.GetString("postgres-user"),
+			Password: createViewViper.GetString("postgres-password"),
+			Database: createViewViper.GetString("postgres-database"),
 		}
 
 		postgres.CreateView(params, postgresConfig)

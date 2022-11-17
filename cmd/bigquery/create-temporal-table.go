@@ -49,11 +49,11 @@ Example:
 		log.Println("→ Executing create temporal table command")
 
 		params := types.BQCreateTemporalTableConfig{
-			Query:         viper.GetString("query"),
-			ProjectId:     viper.GetString("project-id"),
-			TempTableName: viper.GetString("temp-table-name"),
-			TempDatasetId: viper.GetString("temp-dataset-id"),
-			TTL:           viper.GetInt("temp-table-ttl"),
+			Query:         createTemporalTableViper.GetString("query"),
+			ProjectId:     createTemporalTableViper.GetString("project-id"),
+			TempTableName: createTemporalTableViper.GetString("temp-table-name"),
+			TempDatasetId: createTemporalTableViper.GetString("temp-dataset-id"),
+			TTL:           createTemporalTableViper.GetInt("temp-table-ttl"),
 		}
 		log.Println(params)
 

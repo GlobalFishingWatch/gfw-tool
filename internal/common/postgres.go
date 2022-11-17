@@ -20,6 +20,24 @@ func PostgresCreateClient(ctx context.Context, postgresConfig types.PostgresConf
 	return conn
 }
 
+func PostgresCreateTable(ctx context.Context, postgresConfig types.PostgresConfig, tableName string, schema string) {
+	client := PostgresCreateClient(ctx, postgresConfig)
+	defer client.Close(ctx)
+
+	log.Println("→ PG →→ Creating a new table")
+	createTableCommand := fmt.Sprintf(
+		`CREATE TABLE IF NOT EXISTS %s (
+				%v
+           );`, tableName, schema)
+	log.Printf("→ PG →→ Creating table with command %s", createTableCommand)
+	_, err := client.Exec(ctx, createTableCommand)
+	if err != nil {
+		log.Fatalf("→ PG →→ Error creating table: %v", err)
+	}
+
+	log.Printf("→ PG →→ Successfully created table with name %v", tableName)
+}
+
 func PostgresCreateIndex(ctx context.Context, postgresConfig types.PostgresConfig, tableName string, indexName string, column string) {
 	client := PostgresCreateClient(ctx, postgresConfig)
 	defer client.Close(ctx)

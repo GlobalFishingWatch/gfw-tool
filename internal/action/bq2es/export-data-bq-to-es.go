@@ -10,10 +10,8 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/dustin/go-humanize"
-	"google.golang.org/api/iterator"
 	"log"
 	"net/http"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -92,72 +90,8 @@ func validateFlags(params types.BQ2ESImportConfig) {
 
 // BigQuery Functions
 func getResultsFromBigQuery(ctx context.Context, projectId string, query string, ch chan map[string]bigquery.Value) {
-	iterator := common.MakeQuery(ctx, projectId, query)
-	go parseResultsToJson(iterator, ch)
-}
-
-func parseResultsToJson(it *bigquery.RowIterator, ch chan map[string]bigquery.Value) {
-	log.Println("→ BQ →→ Parsing results to JSON")
-
-	for {
-		var values []bigquery.Value
-		err := it.Next(&values)
-
-		if err == iterator.Done {
-			close(ch)
-			break
-		}
-		if err != nil {
-			log.Fatalf("→ BQ →→ Error: %v", err)
-		}
-
-		var dataMapped = toMapJson(values, it.Schema)
-		ch <- dataMapped
-	}
-}
-
-func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = common.GetColumnNamesFromTableSchema(schema)
-	var dataMapped = make(map[string]bigquery.Value)
-	for i := 0; i < len(columnNames); i++ {
-		if schema[i].Type == "RECORD" {
-			if values[i] == nil {
-				dataMapped[columnNames[i]] = values[i]
-				continue
-			}
-			valuesNested := values[i].([]bigquery.Value)
-			var valuesParsed = make([]map[string]bigquery.Value, len(valuesNested))
-			var aux = make(map[string]bigquery.Value)
-			if len(valuesNested) == 0 {
-				dataMapped[columnNames[i]] = valuesNested
-				continue
-			}
-			for c := 0; c < len(valuesNested); c++ {
-				if reflect.TypeOf(valuesNested[c]).Kind() != reflect.Interface &&
-					reflect.TypeOf(valuesNested[c]).Kind() != reflect.Slice {
-					var columnNamesNested = common.GetColumnNamesFromTableSchema(schema[i].Schema)
-					aux[columnNamesNested[c]] = valuesNested[c]
-					dataMapped[columnNames[i]] = aux
-				} else {
-					valuesParsed[c] = toMapJsonNested(valuesNested[c].([]bigquery.Value), schema[i].Schema)
-					dataMapped[columnNames[i]] = valuesParsed
-				}
-			}
-
-		} else {
-			dataMapped[columnNames[i]] = values[i]
-		}
-	}
-	return dataMapped
-}
-
-func toMapJsonNested(value []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = common.GetColumnNamesFromTableSchema(schema)
-	var dataMapped = make(map[string]bigquery.Value)
-	for c := 0; c < len(columnNames); c++ {
-		dataMapped[columnNames[c]] = value[c]
-	}
-	return dataMapped
+	iterator := common.MakeQuery(ctx, projectId, query, false)
+	go common.ParseResultsToJson(iterator, ch)
 }
 
 // Elastic Search Functions
