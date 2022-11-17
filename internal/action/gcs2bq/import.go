@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Export(params types.GCSExportDataToBigQueryConfig) {
+func Export(params types.GCS2BQExportDataToBigQueryConfig) {
 	ctx := context.Background()
 	table := common.BigQueryGetTable(
 		ctx,
@@ -32,7 +32,7 @@ func Export(params types.GCSExportDataToBigQueryConfig) {
 func executeCreateMode(
 	ctx context.Context,
 	table *bigquery.Table,
-	params types.GCSExportDataToBigQueryConfig,
+	params types.GCS2BQExportDataToBigQueryConfig,
 ) {
 	log.Println("→ BQ →→ Executing Create mode")
 
@@ -64,7 +64,7 @@ func executeCreateMode(
 	runLoader(ctx, loader)
 }
 
-func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params types.GCSExportDataToBigQueryConfig) {
+func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params types.GCS2BQExportDataToBigQueryConfig) {
 	log.Println("→ BQ →→ Executing Autodetect mode")
 
 	existsTable := common.BigQueryCheckIfTableExists(ctx, table)
@@ -83,7 +83,7 @@ func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params ty
 	runLoader(ctx, loader)
 }
 
-func executeAppendMode(ctx context.Context, table *bigquery.Table, params types.GCSExportDataToBigQueryConfig) {
+func executeAppendMode(ctx context.Context, table *bigquery.Table, params types.GCS2BQExportDataToBigQueryConfig) {
 	log.Println("→ BQ →→ Executing Append mode")
 	existsTable := common.BigQueryCheckIfTableExists(ctx, table)
 	log.Printf("→ BQ →→ The table with name %s exists %t:", params.TableName, existsTable)

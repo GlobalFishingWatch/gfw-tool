@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
+func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) {
 	ctx := context.Background()
 
 	validateParams(params)
@@ -83,7 +83,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 
 }
 
-func validateParams(params types.BQExportDataToGCSConfig) {
+func validateParams(params types.BQ2GCSExportDataToGCSConfig) {
 	if params.DestinationFormat != "CSV" && params.DestinationFormat != "JSON" {
 		log.Fatal("Destination format should be JSON or CSV")
 	}

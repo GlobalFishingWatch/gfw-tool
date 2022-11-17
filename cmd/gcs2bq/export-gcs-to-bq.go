@@ -67,7 +67,7 @@ Example:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		params := types.GCSExportDataToBigQueryConfig{
+		params := types.GCS2BQExportDataToBigQueryConfig{
 			ProjectId:          exportGCStoBQViper.GetString("project-id"),
 			BucketUri:          exportGCStoBQViper.GetString("bucket-uri"),
 			SourceDataFormat:   exportGCStoBQViper.GetString("source-data-format"),

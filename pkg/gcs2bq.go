@@ -5,6 +5,6 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
 
-func GCS2BQExportDataFromGCStoBigQuery(params types.GCSExportDataToBigQueryConfig) {
+func GCS2BQExportDataFromGCStoBigQuery(params types.GCS2BQExportDataToBigQueryConfig) {
 	gcs2bq.Export(params)
 }

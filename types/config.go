@@ -1,6 +1,6 @@
 package types
 
-type BQExportDataToGCSConfig struct {
+type BQ2GCSExportDataToGCSConfig struct {
 	Query                string
 	ProjectId            string
 	TemporalDataset      string
@@ -48,7 +48,7 @@ type BQRawQueryConfig struct {
 	WriteDisposition   string
 }
 
-type GCSExportDataToBigQueryConfig struct {
+type GCS2BQExportDataToBigQueryConfig struct {
 	ProjectId          string
 	BucketUri          string
 	SourceDataFormat   string
