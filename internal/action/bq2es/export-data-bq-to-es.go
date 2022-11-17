@@ -31,11 +31,11 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 
 	onErrorAction = params.OnError
 
-	indexExists := common.CheckIfIndexExists(params.ElasticSearchUrl, params.IndexName)
+	indexExists := common.ElasticSearchCheckIfIndexExists(params.ElasticSearchUrl, params.IndexName)
 	if indexExists == true && onErrorAction == "reindex" {
 		log.Println("→ Reindexing index to avoid losing data")
 		temporalIndexName = params.IndexName + "-" + time.Now().UTC().Format("2006-01-02") + "-reindexed"
-		common.Reindex(params.ElasticSearchUrl, params.IndexName, temporalIndexName)
+		common.ElasticSearchReindex(params.ElasticSearchUrl, params.IndexName, temporalIndexName)
 	}
 
 	ch := make(chan map[string]bigquery.Value, 500)
@@ -45,7 +45,7 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 
 	log.Println("→ Importing results to elasticsearch (Bulk)")
 	if strings.TrimRight(params.ImportMode, "\n") == "recreate" {
-		common.RecreateIndex(params.ElasticSearchUrl, params.IndexName)
+		common.ElasticSearchRecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
 	const threads = 15
@@ -90,8 +90,8 @@ func validateFlags(params types.BQ2ESImportConfig) {
 
 // BigQuery Functions
 func getResultsFromBigQuery(ctx context.Context, projectId string, query string, ch chan map[string]bigquery.Value) {
-	iterator := common.MakeQuery(ctx, projectId, query, false)
-	go common.ParseResultsToJson(iterator, ch)
+	iterator := common.BigQueryMakeQuery(ctx, projectId, query, false)
+	go common.BigQueryParseResultsToJson(iterator, ch)
 }
 
 // Elastic Search Functions
@@ -202,7 +202,7 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	)
 	log.Printf("Batch [%d]", currentBatch)
 
-	res := common.ExecuteBulk(
+	res := common.ElasticSearchExecuteBulk(
 		elasticsearchUrl,
 		indexName,
 		buf,
@@ -211,7 +211,7 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	)
 	if res.IsError() {
 		numErrors += numItems
-		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Printf("Response error: [%s]", res.Body)
 		if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 			log.Fatalf("Failure to to parse response body: %s", err)
@@ -224,14 +224,14 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	}
 
 	if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
-		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Fatalf("Failure to to parse response body: %s", err)
 	}
 
 	for _, d := range blk.Items {
 		if d.Index.Status > 201 {
 			numErrors++
-			common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+			common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 			log.Fatalf("  Error: [%d]: %s: %s: %s: %s",
 				d.Index.Status,
 				d.Index.Error.Type,

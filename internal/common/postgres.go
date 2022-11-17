@@ -25,12 +25,12 @@ func PostgresCreateTable(ctx context.Context, postgresConfig types.PostgresConfi
 	defer client.Close(ctx)
 
 	log.Println("→ PG →→ Creating a new table")
-	createTableCommand := fmt.Sprintf(
+	BigQueryCreateTableCommand := fmt.Sprintf(
 		`CREATE TABLE IF NOT EXISTS %s (
 				%v
            );`, tableName, schema)
-	log.Printf("→ PG →→ Creating table with command %s", createTableCommand)
-	_, err := client.Exec(ctx, createTableCommand)
+	log.Printf("→ PG →→ Creating table with command %s", BigQueryCreateTableCommand)
+	_, err := client.Exec(ctx, BigQueryCreateTableCommand)
 	if err != nil {
 		log.Fatalf("→ PG →→ Error creating table: %v", err)
 	}

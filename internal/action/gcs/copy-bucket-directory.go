@@ -9,11 +9,11 @@ import (
 
 func CopyBucketDirectory(params types.GCSCopyBucketDirectoryConfig) {
 	ctx := context.Background()
-	objectNames := common.ListGCSBucketObjects(ctx, params.SrcBucket, params.SrcDirectory)
+	objectNames := common.GCSListBucketObjects(ctx, params.SrcBucket, params.SrcDirectory)
 	for _, name := range objectNames {
 		nameSplit := strings.Split(name, "/")
 		nameWithoutPath := nameSplit[len(nameSplit)-1]
-		common.CopyGCSObject(
+		common.GCSCopyObject(
 			ctx,
 			params.SrcBucket,
 			params.SrcDirectory,

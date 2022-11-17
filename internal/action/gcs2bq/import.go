@@ -11,7 +11,7 @@ import (
 
 func Export(params types.GCSExportDataToBigQueryConfig) {
 	ctx := context.Background()
-	table := common.GetTable(
+	table := common.BigQueryGetTable(
 		ctx,
 		params.ProjectId,
 		params.DatasetName,
@@ -36,7 +36,7 @@ func executeCreateMode(
 ) {
 	log.Println("→ BQ →→ Executing Create mode")
 
-	existsTable := common.CheckIfTableExists(ctx, table)
+	existsTable := common.BigQueryCheckIfTableExists(ctx, table)
 	log.Printf("→ BQ →→ The table with name %s exists %t:", params.TableName, existsTable)
 	if existsTable == true {
 		executeAppendMode(ctx, table, params)
@@ -55,8 +55,8 @@ func executeCreateMode(
 		clusteredFields = make([]string, 0)
 	}
 
-	common.CreateTable(ctx, table, params.Schema, params.PartitionTimeField, clusteredFields)
-	gcsRef := common.GetStorageRef(
+	common.BigQueryCreateTable(ctx, table, params.Schema, params.PartitionTimeField, clusteredFields)
+	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
 		params.TableName,
 	)
@@ -67,12 +67,12 @@ func executeCreateMode(
 func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params types.GCSExportDataToBigQueryConfig) {
 	log.Println("→ BQ →→ Executing Autodetect mode")
 
-	existsTable := common.CheckIfTableExists(ctx, table)
+	existsTable := common.BigQueryCheckIfTableExists(ctx, table)
 	log.Printf("→ BQ →→ The table with name %s exists %t:", params.TableName, existsTable)
 	if existsTable == true {
 		log.Fatalf("→ BQ →→ This table exists and you are trying to recreate the table")
 	}
-	gcsRef := common.GetStorageRef(
+	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
 		params.TableName,
 	)
@@ -85,12 +85,12 @@ func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params ty
 
 func executeAppendMode(ctx context.Context, table *bigquery.Table, params types.GCSExportDataToBigQueryConfig) {
 	log.Println("→ BQ →→ Executing Append mode")
-	existsTable := common.CheckIfTableExists(ctx, table)
+	existsTable := common.BigQueryCheckIfTableExists(ctx, table)
 	log.Printf("→ BQ →→ The table with name %s exists %t:", params.TableName, existsTable)
 	if existsTable == false {
 		log.Fatalf("→ BQ →→ This table does not exist and you are trying to append data")
 	}
-	gcsRef := common.GetStorageRef(
+	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
 		params.TableName,
 	)

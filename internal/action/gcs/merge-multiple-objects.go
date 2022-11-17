@@ -14,7 +14,7 @@ func MergeMultipleObjects(params types.GCSMergeMultipleObjectsConfig) {
 		params.DestinationBucket = params.SourceBucket
 	}
 
-	objects := common.ListGCSBucketObjects(
+	objects := common.GCSListBucketObjects(
 		ctx,
 		params.SourceBucket,
 		params.SourceDirectory,
@@ -26,8 +26,8 @@ func MergeMultipleObjects(params types.GCSMergeMultipleObjectsConfig) {
 		destinationFormat = destinationFormat + ".gz"
 	}
 
-	common.MergeObjects(ctx, params.SourceBucket, objects, params.SourceDirectory+"/"+params.MergedObjectName+"."+destinationFormat)
-	common.CopyGCSObject(
+	common.GCSMergeObjects(ctx, params.SourceBucket, objects, params.SourceDirectory+"/"+params.MergedObjectName+"."+destinationFormat)
+	common.GCSCopyObject(
 		ctx,
 		params.SourceBucket,
 		params.SourceDirectory,
@@ -36,5 +36,5 @@ func MergeMultipleObjects(params types.GCSMergeMultipleObjectsConfig) {
 		params.DestinationDirectory,
 		params.DstObjectName+"."+destinationFormat,
 	)
-	common.DeleteObject(ctx, params.SourceBucket, params.SourceDirectory+"/"+params.MergedObjectName+"."+destinationFormat)
+	common.GCSDeleteObject(ctx, params.SourceBucket, params.SourceDirectory+"/"+params.MergedObjectName+"."+destinationFormat)
 }

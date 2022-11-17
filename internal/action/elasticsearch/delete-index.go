@@ -8,7 +8,7 @@ import (
 
 func DeleteIndex(params types.ElasticsearchDeleteIndexConfig) {
 	utils.ValidateUrl(params.ElasticSearchUrl)
-	common.DeleteIndex(
+	common.ElasticSearchDeleteIndex(
 		params.ElasticSearchUrl,
 		params.IndexName,
 		false,

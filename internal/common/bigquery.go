@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func CreateBigQueryClient(ctx context.Context, projectId string) *bigquery.Client {
+func BigQueryCreateClient(ctx context.Context, projectId string) *bigquery.Client {
 	log.Println("→ BQ →→ Creating Big Query Client")
 
 	client, err := bigquery.NewClient(ctx, projectId)
@@ -25,14 +25,14 @@ func CreateBigQueryClient(ctx context.Context, projectId string) *bigquery.Clien
 	return client
 }
 
-func MakeQuery(
+func BigQueryMakeQuery(
 	ctx context.Context,
 	projectId string,
 	sqlQuery string,
 	exportToTemporalTable bool,
 ) *bigquery.RowIterator {
 	log.Println("→ BQ →→ Making query to get data from bigQuery")
-	client := CreateBigQueryClient(ctx, projectId)
+	client := BigQueryCreateClient(ctx, projectId)
 
 	query := client.Query(sqlQuery)
 	query.AllowLargeResults = true
@@ -58,7 +58,7 @@ func MakeQuery(
 	return it
 }
 
-func GetColumnNamesFromTableSchema(
+func BigQueryGetColumnNamesFromTableSchema(
 	schema bigquery.Schema,
 ) []string {
 	var columnNames = make([]string, 0)
@@ -99,7 +99,7 @@ func BigQueryExportTableToACSV(
 	temporalTable string,
 	temporalBucket string,
 ) {
-	client := CreateBigQueryClient(ctx, projectId)
+	client := BigQueryCreateClient(ctx, projectId)
 	defer client.Close()
 	temporalDataset := client.DatasetInProject(projectId, dataset)
 	table := temporalDataset.Table(temporalTable)
@@ -110,7 +110,7 @@ func BigQueryExportTableToACSV(
 	extractor := table.ExtractorTo(gcsRef)
 	extractor.DisableHeader = true
 	job, err := extractor.Run(ctx)
-	CheckBigQueryJob(job, err)
+	BigQueryCheckJob(job, err)
 }
 
 func BigQueryGetValuesFromRecord(keys []string, doc map[string]bigquery.Value) string {
@@ -137,7 +137,7 @@ func BigQueryGetValuesFromRecord(keys []string, doc map[string]bigquery.Value) s
 	return values
 }
 
-func CreateTemporalTableFromQuery(
+func BigQueryCreateTemporalTableFromQuery(
 	ctx context.Context,
 	projectId string,
 	datasetId string,
@@ -148,7 +148,7 @@ func CreateTemporalTableFromQuery(
 ) string {
 	log.Println("→ BQ →→ Creating temporal table")
 
-	bqClient := CreateBigQueryClient(ctx, projectId)
+	bqClient := BigQueryCreateClient(ctx, projectId)
 	defer bqClient.Close()
 
 	log.Printf("→ BQ →→ Query: %s", sqlStatement)
@@ -164,7 +164,7 @@ func CreateTemporalTableFromQuery(
 	}
 
 	log.Printf("→ BQ →→ Temporal table name: %s", temporalTableName)
-	dstTable := GetTable(
+	dstTable := BigQueryGetTable(
 		ctx,
 		projectId,
 		datasetId,
@@ -190,7 +190,7 @@ func CreateTemporalTableFromQuery(
 	log.Println("→ BQ →→ Exporting query to intermediate table")
 
 	job, err := query.Run(context.Background())
-	CheckBigQueryJob(job, err)
+	BigQueryCheckJob(job, err)
 
 	config, err := job.Config()
 	if err != nil {
@@ -201,7 +201,7 @@ func CreateTemporalTableFromQuery(
 	return tempTable.TableID
 }
 
-func CreateTable(
+func BigQueryCreateTable(
 	ctx context.Context,
 	table *bigquery.Table,
 	schema string,
@@ -239,7 +239,7 @@ func CreateTable(
 }
 
 func BigQueryDeleteTable(ctx context.Context, projectId string, dataset string, temporalTable string) {
-	client := CreateBigQueryClient(ctx, projectId)
+	client := BigQueryCreateClient(ctx, projectId)
 	defer client.Close()
 	temporalDataset := client.DatasetInProject(projectId, dataset)
 	table := temporalDataset.Table(temporalTable)
@@ -248,18 +248,18 @@ func BigQueryDeleteTable(ctx context.Context, projectId string, dataset string, 
 	}
 }
 
-func GetTable(
+func BigQueryGetTable(
 	ctx context.Context,
 	projectId string,
 	datasetName string,
 	tableName string,
 ) *bigquery.Table {
-	bigQueryClient := CreateBigQueryClient(ctx, projectId)
+	bigQueryClient := BigQueryCreateClient(ctx, projectId)
 	table := bigQueryClient.Dataset(datasetName).Table(tableName)
 	return table
 }
 
-func ExportTemporalTableToCsvInGCS(
+func BigQueryExportTemporalTableToCsvInGCS(
 	ctx context.Context,
 	projectId string,
 	dataset string,
@@ -269,7 +269,7 @@ func ExportTemporalTableToCsvInGCS(
 	headersEnable bool,
 ) []string {
 
-	bqClient := CreateBigQueryClient(ctx, projectId)
+	bqClient := BigQueryCreateClient(ctx, projectId)
 	defer bqClient.Close()
 
 	temporalDataset := bqClient.DatasetInProject(projectId, dataset)
@@ -284,7 +284,7 @@ func ExportTemporalTableToCsvInGCS(
 		extractor.DisableHeader = true
 	}
 	job, err := extractor.Run(ctx)
-	CheckBigQueryJob(job, err)
+	BigQueryCheckJob(job, err)
 	config, err := job.Config()
 	if err != nil {
 		log.Fatal("→ BQ →→ Error obtaining config", err)
@@ -294,7 +294,7 @@ func ExportTemporalTableToCsvInGCS(
 	return tempBucket.URIs
 }
 
-func ExportTemporalTableToJSONInGCS(
+func BigQueryExportTemporalTableToJSONInGCS(
 	ctx context.Context,
 	projectId string,
 	dataset string,
@@ -303,7 +303,7 @@ func ExportTemporalTableToJSONInGCS(
 	directory string,
 	compressObjects bool,
 ) []string {
-	bqClient := CreateBigQueryClient(ctx, projectId)
+	bqClient := BigQueryCreateClient(ctx, projectId)
 	defer bqClient.Close()
 
 	temporalDataset := bqClient.DatasetInProject(projectId, dataset)
@@ -321,7 +321,7 @@ func ExportTemporalTableToJSONInGCS(
 
 	extractor := table.ExtractorTo(gcsRef)
 	job, err := extractor.Run(ctx)
-	CheckBigQueryJob(job, err)
+	BigQueryCheckJob(job, err)
 	config, err := job.Config()
 	if err != nil {
 		log.Fatal("→ BQ →→ Error obtaining config", err)
@@ -331,7 +331,7 @@ func ExportTemporalTableToJSONInGCS(
 	return tempBucket.URIs
 }
 
-func CheckIfTableExists(
+func BigQueryCheckIfTableExists(
 	ctx context.Context,
 	table *bigquery.Table,
 ) bool {
@@ -343,7 +343,7 @@ func CheckIfTableExists(
 	return true
 }
 
-func GetStorageRef(
+func BigQueryGetStorageRef(
 	bucketUri string,
 	sourceDataFormat string,
 ) *bigquery.GCSReference {
@@ -359,7 +359,7 @@ func GetStorageRef(
 	return gcsRef
 }
 
-func CheckBigQueryJob(job *bigquery.Job, err error) {
+func BigQueryCheckJob(job *bigquery.Job, err error) {
 	if err != nil {
 		log.Fatal("→ BQ →→ Error creating job", err)
 	}
@@ -380,7 +380,7 @@ func CheckBigQueryJob(job *bigquery.Job, err error) {
 	}
 }
 
-func ParseResultsToJson(it *bigquery.RowIterator, ch chan map[string]bigquery.Value) {
+func BigQueryParseResultsToJson(it *bigquery.RowIterator, ch chan map[string]bigquery.Value) {
 	log.Println("→ BQ →→ Parsing results to JSON")
 
 	for {
@@ -403,7 +403,7 @@ func ParseResultsToJson(it *bigquery.RowIterator, ch chan map[string]bigquery.Va
 // Private Functions
 
 func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = GetColumnNamesFromTableSchema(schema)
+	var columnNames = BigQueryGetColumnNamesFromTableSchema(schema)
 	var dataMapped = make(map[string]bigquery.Value)
 	for i := 0; i < len(columnNames); i++ {
 		if schema[i].Type == "RECORD" {
@@ -417,7 +417,7 @@ func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigqu
 			for c := 0; c < len(valuesNested); c++ {
 				if reflect.TypeOf(valuesNested[c]).Kind() != reflect.Interface &&
 					reflect.TypeOf(valuesNested[c]).Kind() != reflect.Slice {
-					var columnNamesNested = GetColumnNamesFromTableSchema(schema[i].Schema)
+					var columnNamesNested = BigQueryGetColumnNamesFromTableSchema(schema[i].Schema)
 					aux[columnNamesNested[c]] = valuesNested[c]
 					dataMapped[columnNames[i]] = aux
 				} else {
@@ -433,7 +433,7 @@ func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigqu
 }
 
 func toMapJsonNested(value []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = GetColumnNamesFromTableSchema(schema)
+	var columnNames = BigQueryGetColumnNamesFromTableSchema(schema)
 	var dataMapped = make(map[string]bigquery.Value)
 	for c := 0; c < len(columnNames); c++ {
 		dataMapped[columnNames[c]] = value[c]

@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-func WriteFileFromString(path string, filename string, content string) {
-	CreateDirectory(path)
+func OSWriteFileFromString(path string, filename string, content string) {
+	OSCreateDirectory(path)
 	log.Printf("→ OS →→  Creating local file with [%s/%s]", path, filename)
 	f, err := os.Create(path + "/" + filename)
 
@@ -23,7 +23,7 @@ func WriteFileFromString(path string, filename string, content string) {
 	}
 }
 
-func CreateDirectory(path string) {
+func OSCreateDirectory(path string) {
 	log.Printf("→ OS →→ Creating path [%s] if not exists", path)
 	_ = os.Mkdir(path, os.ModePerm)
 }

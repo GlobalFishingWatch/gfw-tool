@@ -9,8 +9,8 @@ import (
 func UploadObject(params types.GCSUploadObjectConfig) {
 	ctx := context.Background()
 	const temporalDirectory = "./temp"
-	common.WriteFileFromString(temporalDirectory, params.DstObjectName, params.Content)
-	common.UploadLocalFileToABucket(
+	common.OSWriteFileFromString(temporalDirectory, params.DstObjectName, params.Content)
+	common.GCSUploadLocalFileToABucket(
 		ctx,
 		params.DstBucket,
 		temporalDirectory,

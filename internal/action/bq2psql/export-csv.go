@@ -27,7 +27,7 @@ func ExportCsvBigQueryToPostgres(params types.BQ2PSQLExportCSVConfig, cloudSqlCo
 
 	// Create a temporal table
 	log.Println("→ Creating temporal table from query result")
-	temporalTableName := common.CreateTemporalTableFromQuery(
+	temporalTableName := common.BigQueryCreateTemporalTableFromQuery(
 		ctx,
 		params.ProjectId,
 		params.TemporalDataset,
@@ -57,7 +57,7 @@ func listObjects(ctx context.Context, projectId string, bucketName string, tempo
 	if err != nil {
 		log.Fatal("→ GCS →→ Error creating GCS client")
 	}
-	bkt := common.GetBucket(ctx, bucketName)
+	bkt := common.GCSGetBucket(ctx, bucketName)
 	prefix := fmt.Sprintf(`bq2psql-tool/%s/`, temporalTable)
 	query := &storage.Query{
 		Prefix: prefix,

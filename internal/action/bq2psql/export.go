@@ -41,8 +41,8 @@ func ExportBigQueryToPostgres(params types.BQ2PSQLExportConfig, postgresConfig t
 
 // BigQuery Functions
 func getResultsFromBigQuery(ctx context.Context, projectId string, queryRequested string, ch chan map[string]bigquery.Value) {
-	iterator := common.MakeQuery(ctx, projectId, queryRequested, true)
-	go common.ParseResultsToJson(iterator, ch)
+	iterator := common.BigQueryMakeQuery(ctx, projectId, queryRequested, true)
+	go common.BigQueryParseResultsToJson(iterator, ch)
 }
 
 // Postgres functions
