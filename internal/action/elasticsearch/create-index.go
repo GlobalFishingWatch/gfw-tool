@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func ElasticSearchCreateIndexWithCustomMapping(params types.ElasticsearchCreateIndexConfig) {
+func CreateIndexWithCustomMapping(params types.ElasticsearchCreateIndexConfig) {
 
 	utils.ValidateUrl(params.ElasticSearchUrl)
 
