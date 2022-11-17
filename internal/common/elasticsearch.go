@@ -222,7 +222,7 @@ func ElasticSearchRecreateIndex(elasticsearchUrl string, indexName string) {
 	ElasticSearchCreateIndex(elasticsearchUrl, indexName)
 }
 
-func ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types.Index {
+func ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types.ElasticSearchIndexResponse {
 	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	res, err := client.Cat.Indices(
@@ -237,7 +237,7 @@ func ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl string, prefix st
 		log.Fatalf("→ ES →→ Cannot list indices with prefix: %s", res)
 	}
 	defer res.Body.Close()
-	var indices []types.Index
+	var indices []types.ElasticSearchIndexResponse
 	err = json.NewDecoder(res.Body).Decode(&indices)
 	if err != nil {
 		log.Fatalf("→ ES →→ Cannot list indices with prefix: %s", err)

@@ -195,7 +195,7 @@ func importBulk(
 func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (int, int, int) {
 	var (
 		raw        map[string]interface{}
-		blk        *types.BulkResponse
+		blk        *types.ElasticSearchBulkResponse
 		numErrors  int
 		numItems   int
 		numIndexed int
