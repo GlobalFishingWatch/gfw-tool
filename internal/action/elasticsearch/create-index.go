@@ -7,17 +7,17 @@ import (
 	"log"
 )
 
-func CreateIndexWithCustomMapping(params types.ElasticsearchCreateIndexConfig) {
+func ElasticSearchCreateIndexWithCustomMapping(params types.ElasticsearchCreateIndexConfig) {
 
 	utils.ValidateUrl(params.ElasticSearchUrl)
 
-	common.CreateIndex(
+	common.ElasticSearchCreateIndex(
 		params.ElasticSearchUrl,
 		params.IndexName,
 	)
 
 	if params.Settings != "" {
-		settingsRes := common.PutSettingsToIndex(
+		settingsRes := common.ElasticSearchPutSettingsToIndex(
 			params.ElasticSearchUrl,
 			params.IndexName,
 			params.Settings,
@@ -25,7 +25,7 @@ func CreateIndexWithCustomMapping(params types.ElasticsearchCreateIndexConfig) {
 		log.Printf("→ Set Settings response: %v", settingsRes)
 	}
 
-	mappingRes := common.PutMappingToIndex(
+	mappingRes := common.ElasticSearchPutMappingToIndex(
 		params.ElasticSearchUrl,
 		params.IndexName,
 		params.Mapping,

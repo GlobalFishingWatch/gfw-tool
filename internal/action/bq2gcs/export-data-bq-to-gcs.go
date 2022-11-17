@@ -8,14 +8,14 @@ import (
 	"log"
 )
 
-func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
+func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) {
 	ctx := context.Background()
 
 	validateParams(params)
 
 	if params.ExportHeadersAsAFile && params.DestinationFormat == "CSV" {
 		temporalHeadersQuery := fmt.Sprintf(`%s LIMIT 0`, params.Query)
-		temporalHeadersTableId := common.CreateTemporalTableFromQuery(
+		temporalHeadersTableId := common.BigQueryCreateTemporalTableFromQuery(
 			ctx,
 			params.ProjectId,
 			params.TemporalDataset,
@@ -25,7 +25,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 			"_headers",
 		)
 
-		common.ExportTemporalTableToCsvInGCS(
+		common.BigQueryExportTemporalTableToCsvInGCS(
 			ctx,
 			params.ProjectId,
 			params.TemporalDataset,
@@ -35,7 +35,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 			true,
 		)
 
-		common.CopyGCSObject(
+		common.GCSCopyObject(
 			ctx,
 			params.Bucket,
 			params.BucketDirectory,
@@ -47,7 +47,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 
 	}
 
-	temporalTableId := common.CreateTemporalTableFromQuery(
+	temporalTableId := common.BigQueryCreateTemporalTableFromQuery(
 		ctx,
 		params.ProjectId,
 		params.TemporalDataset,
@@ -58,7 +58,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 	)
 
 	if params.DestinationFormat == "CSV" {
-		common.ExportTemporalTableToCsvInGCS(
+		common.BigQueryExportTemporalTableToCsvInGCS(
 			ctx,
 			params.ProjectId,
 			params.TemporalDataset,
@@ -68,7 +68,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 			params.HeadersEnable,
 		)
 	} else if params.DestinationFormat == "JSON" {
-		common.ExportTemporalTableToJSONInGCS(
+		common.BigQueryExportTemporalTableToJSONInGCS(
 			ctx,
 			params.ProjectId,
 			params.TemporalDataset,
@@ -83,7 +83,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQExportDataToGCSConfig) {
 
 }
 
-func validateParams(params types.BQExportDataToGCSConfig) {
+func validateParams(params types.BQ2GCSExportDataToGCSConfig) {
 	if params.DestinationFormat != "CSV" && params.DestinationFormat != "JSON" {
 		log.Fatal("Destination format should be JSON or CSV")
 	}

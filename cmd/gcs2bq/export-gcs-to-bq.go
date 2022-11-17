@@ -67,16 +67,16 @@ Example:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		params := types.GCSExportDataToBigQueryConfig{
-			ProjectId:          viper.GetString("project-id"),
-			BucketUri:          viper.GetString("bucket-uri"),
-			SourceDataFormat:   viper.GetString("source-data-format"),
-			DatasetName:        viper.GetString("dataset-name"),
-			TableName:          viper.GetString("table-name"),
-			Mode:               viper.GetString("mode"),
-			Schema:             viper.GetString("schema"),
-			PartitionTimeField: viper.GetString("partition-time-field"),
-			ClusteredFields:    viper.GetString("clustered-fields"),
+		params := types.GCS2BQExportDataToBigQueryConfig{
+			ProjectId:          exportGCStoBQViper.GetString("project-id"),
+			BucketUri:          exportGCStoBQViper.GetString("bucket-uri"),
+			SourceDataFormat:   exportGCStoBQViper.GetString("source-data-format"),
+			DatasetName:        exportGCStoBQViper.GetString("dataset-name"),
+			TableName:          exportGCStoBQViper.GetString("table-name"),
+			Mode:               exportGCStoBQViper.GetString("mode"),
+			Schema:             exportGCStoBQViper.GetString("schema"),
+			PartitionTimeField: exportGCStoBQViper.GetString("partition-time-field"),
+			ClusteredFields:    exportGCStoBQViper.GetString("clustered-fields"),
 		}
 		log.Printf("→ Config: [%s]", params)
 

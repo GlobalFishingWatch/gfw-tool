@@ -35,9 +35,9 @@ Example:
 	gfw-tool elasticsearch delete-indices-by-prefix --index-prefix=test-vessels --no-delete-index=test-vessels-2021-01 --elastic-search-url="https://user:password@elastic.gfw.org"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := types.ElasticsearchDeleteIndicesByPrefixConfig{
-			Prefix:           viper.GetString("index-prefix"),
-			NoDeleteIndex:    viper.GetString("no-delete-index"),
-			ElasticSearchUrl: viper.GetString("elastic-search-url"),
+			Prefix:           deleteIndicesByPrefixViper.GetString("index-prefix"),
+			NoDeleteIndex:    deleteIndicesByPrefixViper.GetString("no-delete-index"),
+			ElasticSearchUrl: deleteIndicesByPrefixViper.GetString("elastic-search-url"),
 		}
 		log.Println("→ Executing Delete Indices by prefix command")
 		action.DeleteIndicesByPrefix(params)

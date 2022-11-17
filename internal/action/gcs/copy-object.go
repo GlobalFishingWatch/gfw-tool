@@ -9,7 +9,7 @@ import (
 func CopyObject(params types.GCSCopyObjectConfig) {
 	ctx := context.Background()
 
-	common.CopyGCSObject(
+	common.GCSCopyObject(
 		ctx,
 		params.SrcBucket,
 		params.SrcDirectory,

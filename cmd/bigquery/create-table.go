@@ -47,10 +47,10 @@ Example:
 		log.Println("→ Executing create table command")
 
 		params := types.BQCreateTableConfig{
-			Query:     viper.GetString("query"),
-			ProjectId: viper.GetString("project-id"),
-			TableName: viper.GetString("table-name"),
-			DatasetId: viper.GetString("dataset-id"),
+			Query:     createTableViper.GetString("query"),
+			ProjectId: createTableViper.GetString("project-id"),
+			TableName: createTableViper.GetString("table-name"),
+			DatasetId: createTableViper.GetString("dataset-id"),
 		}
 		log.Println(params)
 

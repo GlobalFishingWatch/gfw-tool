@@ -37,13 +37,13 @@ Example:
 	gfw-tool elasticsearch create-index --mapping={} --index-name=test-vessels --elastic-search-url="https://user:password@elastic.gfw.org"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := types.ElasticsearchCreateIndexConfig{
-			IndexName:        viper.GetString("index-name"),
-			Mapping:          viper.GetString("mapping"),
-			Settings:         viper.GetString("settings"),
-			ElasticSearchUrl: viper.GetString("elastic-search-url"),
+			IndexName:        createIndexViper.GetString("index-name"),
+			Mapping:          createIndexViper.GetString("mapping"),
+			Settings:         createIndexViper.GetString("settings"),
+			ElasticSearchUrl: createIndexViper.GetString("elastic-search-url"),
 		}
 		log.Println("→ Executing Create Index command")
-		elasticsearch.CreateIndexWithCustomMapping(params)
+		elasticsearch.ElasticSearchCreateIndexWithCustomMapping(params)
 		log.Println("→ Create Index command finished")
 	},
 }

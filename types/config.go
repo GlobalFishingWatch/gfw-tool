@@ -1,6 +1,6 @@
 package types
 
-type BQExportDataToGCSConfig struct {
+type BQ2GCSExportDataToGCSConfig struct {
 	Query                string
 	ProjectId            string
 	TemporalDataset      string
@@ -48,7 +48,7 @@ type BQRawQueryConfig struct {
 	WriteDisposition   string
 }
 
-type GCSExportDataToBigQueryConfig struct {
+type GCS2BQExportDataToBigQueryConfig struct {
 	ProjectId          string
 	BucketUri          string
 	SourceDataFormat   string
@@ -153,4 +153,26 @@ type PostgresConfig struct {
 	User     string
 	Password string
 	Database string
+}
+
+type BQ2PSQLExportConfig struct {
+	Query     string
+	ProjectId string
+	TableName string
+	Schema    string
+}
+
+type BQ2PSQLExportCSVConfig struct {
+	Query                string
+	ProjectId            string
+	TemporalDataset      string
+	TemporalBucket       string
+	DestinationTableName string
+}
+
+type CloudSqlConfig struct {
+	Database string
+	Instance string
+	Table    string
+	Columns  string
 }

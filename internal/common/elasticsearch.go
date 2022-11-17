@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func CreateElasticSearchClient(url string) *elasticsearch.Client {
+func ElasticSearchCreateClient(url string) *elasticsearch.Client {
 	log.Println("→ BQ →→ Creating Big Query Client")
 
 	cfg := elasticsearch.Config{
@@ -25,8 +25,8 @@ func CreateElasticSearchClient(url string) *elasticsearch.Client {
 	return client
 }
 
-func CheckIfIndexExists(elasticsearchUrl string, indexName string) bool {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchCheckIfIndexExists(elasticsearchUrl string, indexName string) bool {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	res, err := client.Indices.Exists([]string{indexName})
 	if err != nil {
@@ -36,8 +36,8 @@ func CheckIfIndexExists(elasticsearchUrl string, indexName string) bool {
 	return res.StatusCode == 200
 }
 
-func CreateIndex(elasticsearchUrl string, indexName string) {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchCreateIndex(elasticsearchUrl string, indexName string) {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 	log.Printf("→ ES →→ Creating index with name %v\n", indexName)
 	res, err := client.Indices.Create(indexName)
 	if err != nil {
@@ -48,8 +48,8 @@ func CreateIndex(elasticsearchUrl string, indexName string) {
 	}
 }
 
-func DeleteIndex(elasticsearchUrl string, indexName string, ifExists bool) {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchDeleteIndex(elasticsearchUrl string, indexName string, ifExists bool) {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 	log.Printf("→ ES →→ Deleting index with name %v\n", indexName)
 
 	res, err := client.Indices.Delete([]string{indexName})
@@ -66,8 +66,8 @@ func DeleteIndex(elasticsearchUrl string, indexName string, ifExists bool) {
 	}
 }
 
-func PutSettingsToIndex(elasticsearchUrl string, indexName string, settings string) *esapi.Response {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchPutSettingsToIndex(elasticsearchUrl string, indexName string, settings string) *esapi.Response {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	log.Printf("→ ES →→ Putting settings to index with name %v\n and mapping %s\n", indexName, settings)
 
@@ -93,8 +93,8 @@ func PutSettingsToIndex(elasticsearchUrl string, indexName string, settings stri
 	return res
 }
 
-func PutMappingToIndex(elasticsearchUrl string, indexName string, mapping string) *esapi.Response {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchPutMappingToIndex(elasticsearchUrl string, indexName string, mapping string) *esapi.Response {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	log.Printf("→ ES →→ Putting mapping to index with name %v\n and mapping %s\n", indexName, mapping)
 
@@ -112,8 +112,8 @@ func PutMappingToIndex(elasticsearchUrl string, indexName string, mapping string
 	return res
 }
 
-func AddAlias(elasticsearchUrl string, indexName string, alias string) {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchAddAlias(elasticsearchUrl string, indexName string, alias string) {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 	indices := []string{indexName}
 	res, err := client.Indices.PutAlias(indices, alias)
 	if err != nil {
@@ -122,35 +122,35 @@ func AddAlias(elasticsearchUrl string, indexName string, alias string) {
 	log.Printf("→ ES →→ Create Alias response: %v", res)
 }
 
-func ExecuteBulk(
+func ElasticSearchExecuteBulk(
 	elasticsearchUrl string,
 	indexName string,
 	buf *bytes.Buffer,
 	currentBatch int,
 	onErrorAction string,
 ) *esapi.Response {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 	res, err := client.Bulk(bytes.NewReader(buf.Bytes()), client.Bulk.WithIndex(indexName))
 	if err != nil {
 		log.Printf("Error importing Bulk")
-		ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Fatalf("Failure indexing Batch %d: %s", currentBatch, err)
 	}
 
 	return res
 }
 
-func ParseEsAPIResponse(res *esapi.Response) map[string]interface{} {
+func ElasticSearchParseEsAPIResponse(res *esapi.Response) map[string]interface{} {
 	responseBody := make(map[string]interface{})
 	json.NewDecoder(res.Body).Decode(&responseBody)
 	return responseBody
 }
 
-func Reindex(elasticsearchUrl string, sourceIndexName string, destinationIndexName string) {
-	client := CreateElasticSearchClient(elasticsearchUrl)
-	existsDestinationIndex := CheckIfIndexExists(elasticsearchUrl, destinationIndexName)
+func ElasticSearchReindex(elasticsearchUrl string, sourceIndexName string, destinationIndexName string) {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
+	existsDestinationIndex := ElasticSearchCheckIfIndexExists(elasticsearchUrl, destinationIndexName)
 	if existsDestinationIndex == true {
-		DeleteIndex(elasticsearchUrl, destinationIndexName, false)
+		ElasticSearchDeleteIndex(elasticsearchUrl, destinationIndexName, false)
 	}
 
 	log.Printf("→ ES →→ Reindexing from %s to %s\n", sourceIndexName, destinationIndexName)
@@ -174,7 +174,7 @@ func Reindex(elasticsearchUrl string, sourceIndexName string, destinationIndexNa
 		log.Fatalf("→ ES →→ Cannot reindex: %s", res)
 	}
 
-	responseBody := ParseEsAPIResponse(res)
+	responseBody := ElasticSearchParseEsAPIResponse(res)
 	taskId := responseBody["task"].(string)
 	log.Printf("→ ES →→ Reindex process started async. Task id: %s \n", taskId)
 
@@ -186,7 +186,7 @@ func Reindex(elasticsearchUrl string, sourceIndexName string, destinationIndexNa
 		if res.IsError() {
 			log.Fatalf("→ ES →→ Cannot reindex: %s", res)
 		}
-		responseBody = ParseEsAPIResponse(res)
+		responseBody = ElasticSearchParseEsAPIResponse(res)
 		taskStatus := responseBody["completed"].(bool)
 		if taskStatus == true {
 			break
@@ -194,36 +194,36 @@ func Reindex(elasticsearchUrl string, sourceIndexName string, destinationIndexNa
 		time.Sleep(5000 * time.Millisecond)
 	}
 	log.Println("→ ES →→ Reindex process completed")
-	DeleteIndex(elasticsearchUrl, sourceIndexName, false)
+	ElasticSearchDeleteIndex(elasticsearchUrl, sourceIndexName, false)
 }
 
-func ExecuteOnErrorAction(
+func ElasticSearchExecuteOnErrorAction(
 	elasticsearchUrl string,
 	indexName string,
 	action string,
 	temporalIndexName string,
 ) {
 	if action == "delete" {
-		DeleteIndex(elasticsearchUrl, indexName, false)
+		ElasticSearchDeleteIndex(elasticsearchUrl, indexName, false)
 	}
 	if action == "reindex" {
 		if temporalIndexName == "" {
 			log.Fatalf("Temporal index name is required")
 		}
-		DeleteIndex(elasticsearchUrl, indexName, false)
-		Reindex(elasticsearchUrl, temporalIndexName, indexName)
-		DeleteIndex(elasticsearchUrl, temporalIndexName, false)
+		ElasticSearchDeleteIndex(elasticsearchUrl, indexName, false)
+		ElasticSearchReindex(elasticsearchUrl, temporalIndexName, indexName)
+		ElasticSearchDeleteIndex(elasticsearchUrl, temporalIndexName, false)
 	}
 }
 
-func RecreateIndex(elasticsearchUrl string, indexName string) {
+func ElasticSearchRecreateIndex(elasticsearchUrl string, indexName string) {
 	log.Printf("→ ES →→ Recreating index with name %v\n", indexName)
-	DeleteIndex(elasticsearchUrl, indexName, false)
-	CreateIndex(elasticsearchUrl, indexName)
+	ElasticSearchDeleteIndex(elasticsearchUrl, indexName, false)
+	ElasticSearchCreateIndex(elasticsearchUrl, indexName)
 }
 
-func GetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types.Index {
-	client := CreateElasticSearchClient(elasticsearchUrl)
+func ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types.ElasticSearchIndexResponse {
+	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	res, err := client.Cat.Indices(
 		client.Cat.Indices.WithIndex(fmt.Sprintf("%s*", prefix)),
@@ -237,7 +237,7 @@ func GetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types
 		log.Fatalf("→ ES →→ Cannot list indices with prefix: %s", res)
 	}
 	defer res.Body.Close()
-	var indices []types.Index
+	var indices []types.ElasticSearchIndexResponse
 	err = json.NewDecoder(res.Body).Decode(&indices)
 	if err != nil {
 		log.Fatalf("→ ES →→ Cannot list indices with prefix: %s", err)

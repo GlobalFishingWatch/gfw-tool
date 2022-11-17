@@ -38,9 +38,9 @@ Example:
 	gfw-tool elasticsearch add-alias --index-name=gfw-tasks-2020 --alias=gfw-tasks --elastic-search-url=https://user:password@elastic.gfw.org`,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := types.ElasticsearchAddAliasConfig{
-			IndexName:        viper.GetString("index-name"),
-			Alias:            viper.GetString("alias"),
-			ElasticSearchUrl: viper.GetString("elastic-search-url"),
+			IndexName:        addAliasViper.GetString("index-name"),
+			Alias:            addAliasViper.GetString("alias"),
+			ElasticSearchUrl: addAliasViper.GetString("elastic-search-url"),
 		}
 
 		log.Println("→ Executing Add Alias command")

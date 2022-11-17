@@ -8,7 +8,7 @@ import (
 
 func ExecuteCreateTable(params types.BQCreateTableConfig) {
 	ctx := context.Background()
-	table := common.GetTable(
+	table := common.BigQueryGetTable(
 		ctx,
 		params.ProjectId,
 		params.DatasetId,
@@ -16,7 +16,7 @@ func ExecuteCreateTable(params types.BQCreateTableConfig) {
 	)
 
 	var clusterFields []string
-	common.CreateTable(
+	common.BigQueryCreateTable(
 		ctx,
 		table,
 		"",
@@ -24,4 +24,3 @@ func ExecuteCreateTable(params types.BQCreateTableConfig) {
 		clusterFields,
 	)
 }
-

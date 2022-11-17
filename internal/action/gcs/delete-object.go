@@ -8,7 +8,7 @@ import (
 
 func DeleteObject(params types.GCSDeleteObjectConfig) {
 	ctx := context.Background()
-	common.DeleteObject(
+	common.GCSDeleteObject(
 		ctx,
 		params.BucketName,
 		params.ObjectName,

@@ -8,7 +8,7 @@ import (
 
 func ExecuteCreateTemporalTable(params types.BQCreateTemporalTableConfig) {
 	ctx := context.Background()
-	common.CreateTemporalTableFromQuery(
+	common.BigQueryCreateTemporalTableFromQuery(
 		ctx,
 		params.ProjectId,
 		params.TempDatasetId,

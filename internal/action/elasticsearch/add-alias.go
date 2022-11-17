@@ -8,5 +8,5 @@ import (
 
 func AddAlias(params types.ElasticsearchAddAliasConfig) {
 	utils.ValidateUrl(params.ElasticSearchUrl)
-	common.AddAlias(params.ElasticSearchUrl, params.IndexName, params.Alias)
+	common.ElasticSearchAddAlias(params.ElasticSearchUrl, params.IndexName, params.Alias)
 }

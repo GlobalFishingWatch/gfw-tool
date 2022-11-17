@@ -1,6 +1,6 @@
 package types
 
-type BulkResponse struct {
+type ElasticSearchBulkResponse struct {
 	Errors bool `json:"errors"`
 	Items  []struct {
 		Index struct {
@@ -19,6 +19,6 @@ type BulkResponse struct {
 	} `json:"items"`
 }
 
-type Index struct {
+type ElasticSearchIndexResponse struct {
 	Index string `json:"index"`
 }

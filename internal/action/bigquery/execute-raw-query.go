@@ -26,8 +26,8 @@ func ExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
 func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig) {
 
 	log.Printf("→ BQ →→ Executing query with destination table %s.%s", params.DestinationDataset, params.DestinationTable)
-	dstTable := common.GetTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
-	client := common.CreateBigQueryClient(ctx, params.ProjectId)
+	dstTable := common.BigQueryGetTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
+	client := common.BigQueryCreateClient(ctx, params.ProjectId)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable
 	query.QueryConfig.WriteDisposition = bigquery.TableWriteDisposition(params.WriteDisposition)
@@ -55,7 +55,7 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 }
 
 func executeQuery(ctx context.Context, params types.BQRawQueryConfig) []map[string]interface{} {
-	client := common.CreateBigQueryClient(ctx, params.ProjectId)
+	client := common.BigQueryCreateClient(ctx, params.ProjectId)
 	query := client.Query(params.Query)
 	query.AllowLargeResults = true
 

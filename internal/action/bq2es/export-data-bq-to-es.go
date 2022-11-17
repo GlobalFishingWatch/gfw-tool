@@ -10,10 +10,8 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/dustin/go-humanize"
-	"google.golang.org/api/iterator"
 	"log"
 	"net/http"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -33,11 +31,11 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 
 	onErrorAction = params.OnError
 
-	indexExists := common.CheckIfIndexExists(params.ElasticSearchUrl, params.IndexName)
+	indexExists := common.ElasticSearchCheckIfIndexExists(params.ElasticSearchUrl, params.IndexName)
 	if indexExists == true && onErrorAction == "reindex" {
 		log.Println("→ Reindexing index to avoid losing data")
 		temporalIndexName = params.IndexName + "-" + time.Now().UTC().Format("2006-01-02") + "-reindexed"
-		common.Reindex(params.ElasticSearchUrl, params.IndexName, temporalIndexName)
+		common.ElasticSearchReindex(params.ElasticSearchUrl, params.IndexName, temporalIndexName)
 	}
 
 	ch := make(chan map[string]bigquery.Value, 500)
@@ -47,7 +45,7 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 
 	log.Println("→ Importing results to elasticsearch (Bulk)")
 	if strings.TrimRight(params.ImportMode, "\n") == "recreate" {
-		common.RecreateIndex(params.ElasticSearchUrl, params.IndexName)
+		common.ElasticSearchRecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
 	const threads = 15
@@ -92,72 +90,8 @@ func validateFlags(params types.BQ2ESImportConfig) {
 
 // BigQuery Functions
 func getResultsFromBigQuery(ctx context.Context, projectId string, query string, ch chan map[string]bigquery.Value) {
-	iterator := common.MakeQuery(ctx, projectId, query)
-	go parseResultsToJson(iterator, ch)
-}
-
-func parseResultsToJson(it *bigquery.RowIterator, ch chan map[string]bigquery.Value) {
-	log.Println("→ BQ →→ Parsing results to JSON")
-
-	for {
-		var values []bigquery.Value
-		err := it.Next(&values)
-
-		if err == iterator.Done {
-			close(ch)
-			break
-		}
-		if err != nil {
-			log.Fatalf("→ BQ →→ Error: %v", err)
-		}
-
-		var dataMapped = toMapJson(values, it.Schema)
-		ch <- dataMapped
-	}
-}
-
-func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = common.GetColumnNamesFromTableSchema(schema)
-	var dataMapped = make(map[string]bigquery.Value)
-	for i := 0; i < len(columnNames); i++ {
-		if schema[i].Type == "RECORD" {
-			if values[i] == nil {
-				dataMapped[columnNames[i]] = values[i]
-				continue
-			}
-			valuesNested := values[i].([]bigquery.Value)
-			var valuesParsed = make([]map[string]bigquery.Value, len(valuesNested))
-			var aux = make(map[string]bigquery.Value)
-			if len(valuesNested) == 0 {
-				dataMapped[columnNames[i]] = valuesNested
-				continue
-			}
-			for c := 0; c < len(valuesNested); c++ {
-				if reflect.TypeOf(valuesNested[c]).Kind() != reflect.Interface &&
-					reflect.TypeOf(valuesNested[c]).Kind() != reflect.Slice {
-					var columnNamesNested = common.GetColumnNamesFromTableSchema(schema[i].Schema)
-					aux[columnNamesNested[c]] = valuesNested[c]
-					dataMapped[columnNames[i]] = aux
-				} else {
-					valuesParsed[c] = toMapJsonNested(valuesNested[c].([]bigquery.Value), schema[i].Schema)
-					dataMapped[columnNames[i]] = valuesParsed
-				}
-			}
-
-		} else {
-			dataMapped[columnNames[i]] = values[i]
-		}
-	}
-	return dataMapped
-}
-
-func toMapJsonNested(value []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = common.GetColumnNamesFromTableSchema(schema)
-	var dataMapped = make(map[string]bigquery.Value)
-	for c := 0; c < len(columnNames); c++ {
-		dataMapped[columnNames[c]] = value[c]
-	}
-	return dataMapped
+	iterator := common.BigQueryMakeQuery(ctx, projectId, query, false)
+	go common.BigQueryParseResultsToJson(iterator, ch)
 }
 
 // Elastic Search Functions
@@ -261,14 +195,14 @@ func importBulk(
 func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (int, int, int) {
 	var (
 		raw        map[string]interface{}
-		blk        *types.BulkResponse
+		blk        *types.ElasticSearchBulkResponse
 		numErrors  int
 		numItems   int
 		numIndexed int
 	)
 	log.Printf("Batch [%d]", currentBatch)
 
-	res := common.ExecuteBulk(
+	res := common.ElasticSearchExecuteBulk(
 		elasticsearchUrl,
 		indexName,
 		buf,
@@ -277,7 +211,7 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	)
 	if res.IsError() {
 		numErrors += numItems
-		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Printf("Response error: [%s]", res.Body)
 		if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 			log.Fatalf("Failure to to parse response body: %s", err)
@@ -290,14 +224,14 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	}
 
 	if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
-		common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Fatalf("Failure to to parse response body: %s", err)
 	}
 
 	for _, d := range blk.Items {
 		if d.Index.Status > 201 {
 			numErrors++
-			common.ExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+			common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 			log.Fatalf("  Error: [%d]: %s: %s: %s: %s",
 				d.Index.Status,
 				d.Index.Error.Type,

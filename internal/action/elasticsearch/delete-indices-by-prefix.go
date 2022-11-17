@@ -14,10 +14,10 @@ func DeleteIndicesByPrefix(params types.ElasticsearchDeleteIndicesByPrefixConfig
 
 func deleteIndicesByPrefix(elasticsearchUrl string, prefix string, noDeleteIndex string) {
 	log.Printf("→ ES →→ Listing indices by prefix %s", prefix)
-	indices := common.GetIndicesFilteringByPrefix(elasticsearchUrl, prefix)
+	indices := common.ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl, prefix)
 	for _, index := range indices {
 		if index.Index != noDeleteIndex {
-			common.DeleteIndex(elasticsearchUrl, index.Index, false)
+			common.ElasticSearchDeleteIndex(elasticsearchUrl, index.Index, false)
 		} else {
 			log.Printf("→ ES →→ %s index not delete because it is in no-delete-index param", index.Index)
 		}

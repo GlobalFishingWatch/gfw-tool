@@ -56,7 +56,7 @@ Format:
 		--gcs-bucket-destination-object-name=
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		params := types.BQExportDataToGCSConfig{
+		params := types.BQ2GCSExportDataToGCSConfig{
 			ProjectId:            exportBqToGcsViper.GetString("project-id"),
 			Query:                exportBqToGcsViper.GetString("bq-query"),
 			TemporalDataset:      exportBqToGcsViper.GetString("bq-temporal-dataset"),

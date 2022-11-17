@@ -5,6 +5,6 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
 
-func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
+func BQ2ESExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 	bq2es.ExportBigQueryToElasticSearch(params)
 }

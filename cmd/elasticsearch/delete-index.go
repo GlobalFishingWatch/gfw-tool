@@ -34,8 +34,8 @@ Example:
 	gfw-tool elasticsearch delete-index --index-name=test-vessels --elastic-search-url="https://user:password@elastic.gfw.org"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := types.ElasticsearchDeleteIndexConfig{
-			IndexName:        viper.GetString("index-name"),
-			ElasticSearchUrl: viper.GetString("elastic-search-url"),
+			IndexName:        deleteIndexViper.GetString("index-name"),
+			ElasticSearchUrl: deleteIndexViper.GetString("elastic-search-url"),
 		}
 		log.Println("→ Executing Delete Index command")
 		elasticsearch.DeleteIndex(params)

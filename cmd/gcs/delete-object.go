@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-var gcsDeleteObjectViper *viper.Viper
+var gcsGCSDeleteObjectViper *viper.Viper
 
 func init() {
 

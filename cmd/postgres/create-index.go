@@ -53,16 +53,16 @@ Example:
 		log.Println("→ Executing delete view command")
 
 		params := types.PostgresCreateIndexConfig{
-			TableName: viper.GetString("table-name"),
-			IndexName: viper.GetString("index-name"),
-			Column:    viper.GetString("column"),
+			TableName: createIndexViper.GetString("table-name"),
+			IndexName: createIndexViper.GetString("index-name"),
+			Column:    createIndexViper.GetString("column"),
 		}
 		log.Println(params)
 		postgresConfig := types.PostgresConfig{
-			Addr:     viper.GetString("postgres-address"),
-			User:     viper.GetString("postgres-user"),
-			Password: viper.GetString("postgres-password"),
-			Database: viper.GetString("postgres-database"),
+			Addr:     createIndexViper.GetString("postgres-address"),
+			User:     createIndexViper.GetString("postgres-user"),
+			Password: createIndexViper.GetString("postgres-password"),
+			Database: createIndexViper.GetString("postgres-database"),
 		}
 
 		postgres.CreateIndex(params, postgresConfig)

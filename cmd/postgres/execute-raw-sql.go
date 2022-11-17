@@ -49,15 +49,15 @@ Example:
 		log.Println("→ Executing raw sql command")
 
 		params := types.PostgresExecuteRawSqlConfig{
-			Sql: viper.GetString("sql"),
+			Sql: executeRawSqlViper.GetString("sql"),
 		}
 		log.Println(params)
 
 		postgresConfig := types.PostgresConfig{
-			Addr:     viper.GetString("postgres-address"),
-			User:     viper.GetString("postgres-user"),
-			Password: viper.GetString("postgres-password"),
-			Database: viper.GetString("postgres-database"),
+			Addr:     executeRawSqlViper.GetString("postgres-address"),
+			User:     executeRawSqlViper.GetString("postgres-user"),
+			Password: executeRawSqlViper.GetString("postgres-password"),
+			Database: executeRawSqlViper.GetString("postgres-database"),
 		}
 
 		postgres.ExecuteRawSql(params, postgresConfig)
