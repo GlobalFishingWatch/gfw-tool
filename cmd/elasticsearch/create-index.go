@@ -43,7 +43,7 @@ Example:
 			ElasticSearchUrl: createIndexViper.GetString("elastic-search-url"),
 		}
 		log.Println("→ Executing Create Index command")
-		elasticsearch.ElasticSearchCreateIndexWithCustomMapping(params)
+		elasticsearch.CreateIndexWithCustomMapping(params)
 		log.Println("→ Create Index command finished")
 	},
 }

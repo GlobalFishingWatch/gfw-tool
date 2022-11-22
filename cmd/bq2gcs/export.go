@@ -44,7 +44,7 @@ func init() {
 }
 
 var exportBQtoGCS = &cobra.Command{
-	Use:   "export-bq-to-gcs",
+	Use:   "export",
 	Short: "Export data from BigQuery (query) to a GCS bucket (CSV or JSON)",
 	Long: `Export data from Biquery (query) to a GCS Bucket (CSV or JSON)
 Format:
