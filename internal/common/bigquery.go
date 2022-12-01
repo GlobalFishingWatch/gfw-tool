@@ -168,7 +168,7 @@ func BigQueryCreateTemporalTableFromQuery(
 		ctx,
 		projectId,
 		datasetId,
-		tableName,
+		temporalTableName,
 	)
 
 	var tableMetadata *bigquery.TableMetadata
