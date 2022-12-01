@@ -223,6 +223,7 @@ func ElasticSearchRecreateIndex(elasticsearchUrl string, indexName string) {
 }
 
 func ElasticSearchGetIndicesFilteringByPrefix(elasticsearchUrl string, prefix string) []types.ElasticSearchIndexResponse {
+	log.Println(elasticsearchUrl)
 	client := ElasticSearchCreateClient(elasticsearchUrl)
 
 	res, err := client.Cat.Indices(
