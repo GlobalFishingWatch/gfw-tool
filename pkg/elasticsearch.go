@@ -18,7 +18,7 @@ func ElasticsearchDeleteIndex(params types.ElasticsearchDeleteIndexConfig) {
 }
 
 func ElasticsearchDeleteIndexIfExists(params types.ElasticsearchDeleteIndexConfig) {
-	elasticsearch.DeleteIndex(params)
+	elasticsearch.DeleteIndexIfExists(params)
 }
 
 func ElasticsearchDeleteIndicesByPrefix(params types.ElasticsearchDeleteIndicesByPrefixConfig) {
