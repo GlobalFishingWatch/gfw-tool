@@ -9,7 +9,7 @@ import (
 
 func DeleteIndicesByPrefix(params types.ElasticsearchDeleteIndicesByPrefixConfig) {
 	utils.ValidateUrl(params.ElasticSearchUrl)
-	deleteIndicesByPrefix(params.Prefix, params.NoDeleteIndex, params.NoDeleteIndex)
+	deleteIndicesByPrefix(params.Prefix, params.Prefix, params.NoDeleteIndex)
 }
 
 func deleteIndicesByPrefix(elasticsearchUrl string, prefix string, noDeleteIndex string) {
