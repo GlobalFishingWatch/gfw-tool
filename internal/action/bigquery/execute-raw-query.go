@@ -1,14 +1,15 @@
 package bigquery
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"encoding/json"
+	"log"
+	"time"
+
+	"cloud.google.com/go/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"google.golang.org/api/iterator"
-	"log"
-	"time"
 )
 
 func ExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
@@ -23,10 +24,59 @@ func ExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
 	}
 }
 
+func getFieldSchema(field types.BQField) *bigquery.FieldSchema {
+
+	repeated := false
+	nullable := false
+	if field.Type == "REPEATED" {
+		repeated = true
+	}
+	if field.Type == "NULLABLE" {
+		nullable = true
+	}
+	var schema []*bigquery.FieldSchema
+	if field.Fields != nil {
+		for _, f := range field.Fields {
+			schema = append(schema, getFieldSchema(f))
+		}
+	}
+	return &bigquery.FieldSchema{
+		Name:     field.Name,
+		Type:     bigquery.FieldType(field.Type),
+		Repeated: repeated,
+		Required: !nullable,
+		Schema:   schema,
+	}
+
+}
+
 func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig) {
 
 	log.Printf("→ BQ →→ Executing query with destination table %s.%s", params.DestinationDataset, params.DestinationTable)
 	dstTable := common.BigQueryGetTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
+	metadata := &bigquery.TableMetadata{
+		Location: "US",
+	}
+
+	if params.Schema != nil {
+		var schema []*bigquery.FieldSchema
+		for _, f := range params.Schema {
+			schema = append(schema, getFieldSchema(f))
+		}
+
+		metadata.Schema = schema
+	}
+
+	if params.TimePartitioning != "" {
+		metadata.TimePartitioning = &bigquery.TimePartitioning{
+			Field: params.PartitionTimeField,
+			Type:  bigquery.TimePartitioningType(params.TimePartitioning),
+		}
+	}
+	err := dstTable.Create(ctx, metadata)
+	if err != nil {
+		log.Fatalf("→ BQ →→ Error creating table %e", err)
+	}
 	client := common.BigQueryCreateClient(ctx, params.ProjectId)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable

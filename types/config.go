@@ -46,6 +46,9 @@ type BQRawQueryConfig struct {
 	DestinationTable   string
 	DestinationDataset string
 	WriteDisposition   string
+	Schema             []BQField
+	PartitionTimeField string
+	TimePartitioning   string
 }
 
 type GCS2BQExportDataToBigQueryConfig struct {
@@ -175,4 +178,11 @@ type CloudSqlConfig struct {
 	Instance string
 	Table    string
 	Columns  string
+}
+
+type BQField struct {
+	Mode   string    `json:"mode"`
+	Type   string    `json:"type"`
+	Name   string    `json:"name"`
+	Fields []BQField `json:"fields"`
 }
