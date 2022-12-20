@@ -63,7 +63,9 @@ Example:
 			Schema:             executeRawQueryViper.GetString("schema"),
 		}
 		log.Println(params)
-
+		if params.PartitionTimeField != "" && params.Schema == "" {
+			log.Fatal("Schema is required for partition feature")
+		}
 		action.ExecuteRawQuery(params)
 		log.Println("→ Executing raw query finished")
 	},
