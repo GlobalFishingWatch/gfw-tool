@@ -46,6 +46,9 @@ type BQRawQueryConfig struct {
 	DestinationTable   string
 	DestinationDataset string
 	WriteDisposition   string
+	Schema             string
+	PartitionTimeField string
+	TimePartitioning   string
 }
 
 type GCS2BQExportDataToBigQueryConfig struct {

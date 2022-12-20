@@ -1,14 +1,16 @@
 package bigquery
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"encoding/json"
+	"log"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"google.golang.org/api/iterator"
-	"log"
-	"time"
 )
 
 func ExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
@@ -27,6 +29,37 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 
 	log.Printf("→ BQ →→ Executing query with destination table %s.%s", params.DestinationDataset, params.DestinationTable)
 	dstTable := common.BigQueryGetTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
+	metadata := &bigquery.TableMetadata{
+		Location: "US",
+	}
+	if params.Schema != "" {
+		var schema []*bigquery.FieldSchema
+		fields := strings.Split(params.Schema, ",")
+		for _, f := range fields {
+			parts := strings.Split(f, ":")
+			repeated := false
+			if len(parts) > 2 {
+				repeated = true
+			}
+			schema = append(schema, &bigquery.FieldSchema{
+				Name:     parts[0],
+				Type:     bigquery.FieldType(parts[1]),
+				Repeated: repeated,
+			})
+		}
+		metadata.Schema = schema
+	}
+
+	if params.TimePartitioning != "" {
+		metadata.TimePartitioning = &bigquery.TimePartitioning{
+			Field: params.PartitionTimeField,
+			Type:  bigquery.TimePartitioningType(params.TimePartitioning),
+		}
+	}
+	err := dstTable.Create(ctx, metadata)
+	if err != nil {
+		log.Fatalf("→ BQ →→ Error creating table %e", err)
+	}
 	client := common.BigQueryCreateClient(ctx, params.ProjectId)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable

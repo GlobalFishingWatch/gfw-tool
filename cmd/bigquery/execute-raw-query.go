@@ -1,11 +1,12 @@
 package bigquery
 
 import (
+	"log"
+
 	action "github.com/GlobalFishingWatch/gfw-tool/internal/action/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var executeRawQueryViper *viper.Viper
@@ -27,6 +28,12 @@ func init() {
 	executeRawQueryCmd.Flags().StringP("destination-table", "", "", "The destination table")
 
 	executeRawQueryCmd.Flags().StringP("write-disposition", "", "WRITE_APPEND", "Specifies how existing data in the destination table is treated. Possible value (WRITE_EMPTY, WRITE_TRUNCATE, WRITE_APPEND)")
+
+	executeRawQueryCmd.Flags().String("schema", "", "Specifies schema of the result table")
+
+	executeRawQueryCmd.Flags().String("partition-field", "", "Partition field")
+
+	executeRawQueryCmd.Flags().String("partition-type", "", "Partition type (DAY, WEEK, MONTH, YEAR)")
 
 	executeRawQueryViper.BindPFlags(executeRawQueryCmd.Flags())
 }
@@ -51,6 +58,9 @@ Example:
 			DestinationTable:   executeRawQueryViper.GetString("destination-table"),
 			DestinationDataset: executeRawQueryViper.GetString("destination-dataset"),
 			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
+			PartitionTimeField: executeRawQueryViper.GetString("partition-field"),
+			TimePartitioning:   executeRawQueryViper.GetString("partition-type"),
+			Schema:             executeRawQueryViper.GetString("schema"),
 		}
 		log.Println(params)
 
