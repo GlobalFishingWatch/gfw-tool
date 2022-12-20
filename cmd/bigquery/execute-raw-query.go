@@ -1,6 +1,7 @@
 package bigquery
 
 import (
+	"encoding/json"
 	"log"
 
 	action "github.com/GlobalFishingWatch/gfw-tool/internal/action/bigquery"
@@ -29,7 +30,7 @@ func init() {
 
 	executeRawQueryCmd.Flags().StringP("write-disposition", "", "WRITE_APPEND", "Specifies how existing data in the destination table is treated. Possible value (WRITE_EMPTY, WRITE_TRUNCATE, WRITE_APPEND)")
 
-	executeRawQueryCmd.Flags().String("schema", "", "Specifies schema of the result table")
+	executeRawQueryCmd.Flags().String("schema", "", "Specifies schema of the result table (in json format)")
 
 	executeRawQueryCmd.Flags().String("partition-field", "", "Partition field")
 
@@ -60,12 +61,21 @@ Example:
 			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
 			PartitionTimeField: executeRawQueryViper.GetString("partition-field"),
 			TimePartitioning:   executeRawQueryViper.GetString("partition-type"),
-			Schema:             executeRawQueryViper.GetString("schema"),
+		}
+
+		if executeRawQueryViper.GetString("schema") != "" {
+			var fields []types.BQField
+			err := json.Unmarshal([]byte(executeRawQueryViper.GetString("schema")), &fields)
+			if err != nil {
+				log.Fatal("error parsing schema", err)
+			}
+			params.Schema = fields
 		}
 		log.Println(params)
-		if params.PartitionTimeField != "" && params.Schema == "" {
+		if params.PartitionTimeField != "" && params.Schema == nil {
 			log.Fatal("Schema is required for partition feature")
 		}
+
 		action.ExecuteRawQuery(params)
 		log.Println("→ Executing raw query finished")
 	},

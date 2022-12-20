@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/bigquery"
@@ -25,6 +24,32 @@ func ExecuteRawQuery(params types.BQRawQueryConfig) []map[string]interface{} {
 	}
 }
 
+func getFieldSchema(field types.BQField) *bigquery.FieldSchema {
+
+	repeated := false
+	nullable := false
+	if field.Type == "REPEATED" {
+		repeated = true
+	}
+	if field.Type == "NULLABLE" {
+		nullable = true
+	}
+	var schema []*bigquery.FieldSchema
+	if field.Fields != nil {
+		for _, f := range field.Fields {
+			schema = append(schema, getFieldSchema(f))
+		}
+	}
+	return &bigquery.FieldSchema{
+		Name:     field.Name,
+		Type:     bigquery.FieldType(field.Type),
+		Repeated: repeated,
+		Required: !nullable,
+		Schema:   schema,
+	}
+
+}
+
 func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig) {
 
 	log.Printf("→ BQ →→ Executing query with destination table %s.%s", params.DestinationDataset, params.DestinationTable)
@@ -32,21 +57,13 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 	metadata := &bigquery.TableMetadata{
 		Location: "US",
 	}
-	if params.Schema != "" {
+
+	if params.Schema != nil {
 		var schema []*bigquery.FieldSchema
-		fields := strings.Split(params.Schema, ",")
-		for _, f := range fields {
-			parts := strings.Split(f, ":")
-			repeated := false
-			if len(parts) > 2 {
-				repeated = true
-			}
-			schema = append(schema, &bigquery.FieldSchema{
-				Name:     parts[0],
-				Type:     bigquery.FieldType(parts[1]),
-				Repeated: repeated,
-			})
+		for _, f := range params.Schema {
+			schema = append(schema, getFieldSchema(f))
 		}
+
 		metadata.Schema = schema
 	}
 
