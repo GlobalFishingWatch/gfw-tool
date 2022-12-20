@@ -34,7 +34,7 @@ func init() {
 
 	executeRawQueryCmd.Flags().String("partition-field", "", "Partition field")
 
-	executeRawQueryCmd.Flags().String("partition-type", "", "Partition type (DAY, WEEK, MONTH, YEAR)")
+	executeRawQueryCmd.Flags().String("partition-time", "", "Partition time (DAY, WEEK, MONTH, YEAR)")
 
 	executeRawQueryViper.BindPFlags(executeRawQueryCmd.Flags())
 }
@@ -60,7 +60,7 @@ Example:
 			DestinationDataset: executeRawQueryViper.GetString("destination-dataset"),
 			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
 			PartitionTimeField: executeRawQueryViper.GetString("partition-field"),
-			TimePartitioning:   executeRawQueryViper.GetString("partition-type"),
+			TimePartitioning:   executeRawQueryViper.GetString("partition-time"),
 		}
 
 		if executeRawQueryViper.GetString("schema") != "" {
