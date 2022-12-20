@@ -49,6 +49,7 @@ type BQRawQueryConfig struct {
 	Schema             []BQField
 	PartitionTimeField string
 	TimePartitioning   string
+	ExecutorProject    string
 }
 
 type GCS2BQExportDataToBigQueryConfig struct {

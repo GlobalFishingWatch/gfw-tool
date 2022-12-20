@@ -36,6 +36,8 @@ func init() {
 
 	executeRawQueryCmd.Flags().String("partition-time", "", "Partition time (DAY, WEEK, MONTH, YEAR)")
 
+	executeRawQueryCmd.Flags().String("executor-project", "", "ProjectId where execute the query job")
+
 	executeRawQueryViper.BindPFlags(executeRawQueryCmd.Flags())
 }
 
@@ -61,6 +63,11 @@ Example:
 			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
 			PartitionTimeField: executeRawQueryViper.GetString("partition-field"),
 			TimePartitioning:   executeRawQueryViper.GetString("partition-time"),
+		}
+		if executeRawQueryViper.GetString("executor-project") == "" {
+			params.ExecutorProject = params.ProjectId
+		} else {
+			params.ExecutorProject = executeRawQueryViper.GetString("executor-project")
 		}
 
 		if executeRawQueryViper.GetString("schema") != "" {

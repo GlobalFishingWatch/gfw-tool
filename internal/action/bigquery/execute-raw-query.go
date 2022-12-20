@@ -77,7 +77,7 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 	if err != nil {
 		log.Fatalf("→ BQ →→ Error creating table %e", err)
 	}
-	client := common.BigQueryCreateClient(ctx, params.ProjectId)
+	client := common.BigQueryCreateClient(ctx, params.ExecutorProject)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable
 	query.QueryConfig.WriteDisposition = bigquery.TableWriteDisposition(params.WriteDisposition)
@@ -105,7 +105,7 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 }
 
 func executeQuery(ctx context.Context, params types.BQRawQueryConfig) []map[string]interface{} {
-	client := common.BigQueryCreateClient(ctx, params.ProjectId)
+	client := common.BigQueryCreateClient(ctx, params.ExecutorProject)
 	query := client.Query(params.Query)
 	query.AllowLargeResults = true
 
