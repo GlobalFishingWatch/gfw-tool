@@ -41,15 +41,16 @@ type BQCreateTemporalTableConfig struct {
 }
 
 type BQRawQueryConfig struct {
-	Query              string
-	ProjectId          string
-	DestinationTable   string
-	DestinationDataset string
-	WriteDisposition   string
-	Schema             []BQField
-	PartitionTimeField string
-	TimePartitioning   string
-	ExecutorProject    string
+	Query               string
+	ProjectId           string
+	DestinationTable    string
+	DestinationDataset  string
+	WriteDisposition    string
+	Schema              []BQField
+	PartitionTimeField  string
+	TimePartitioning    string
+	ExecutorProject     string
+	DeleteTableIfExists bool
 }
 
 type GCS2BQExportDataToBigQueryConfig struct {

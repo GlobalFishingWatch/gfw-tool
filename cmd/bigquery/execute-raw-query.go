@@ -38,6 +38,8 @@ func init() {
 
 	executeRawQueryCmd.Flags().String("executor-project", "", "ProjectId where execute the query job")
 
+	executeRawQueryCmd.Flags().Bool("delete-table-if-exists", true, "Delete table if already exists. Default: true")
+
 	executeRawQueryViper.BindPFlags(executeRawQueryCmd.Flags())
 }
 
@@ -56,13 +58,14 @@ Example:
 		log.Println("→ Executing raw query command")
 
 		params := types.BQRawQueryConfig{
-			Query:              executeRawQueryViper.GetString("query"),
-			ProjectId:          executeRawQueryViper.GetString("project-id"),
-			DestinationTable:   executeRawQueryViper.GetString("destination-table"),
-			DestinationDataset: executeRawQueryViper.GetString("destination-dataset"),
-			WriteDisposition:   executeRawQueryViper.GetString("write-disposition"),
-			PartitionTimeField: executeRawQueryViper.GetString("partition-field"),
-			TimePartitioning:   executeRawQueryViper.GetString("partition-time"),
+			Query:               executeRawQueryViper.GetString("query"),
+			ProjectId:           executeRawQueryViper.GetString("project-id"),
+			DestinationTable:    executeRawQueryViper.GetString("destination-table"),
+			DestinationDataset:  executeRawQueryViper.GetString("destination-dataset"),
+			WriteDisposition:    executeRawQueryViper.GetString("write-disposition"),
+			PartitionTimeField:  executeRawQueryViper.GetString("partition-field"),
+			TimePartitioning:    executeRawQueryViper.GetString("partition-time"),
+			DeleteTableIfExists: executeRawQueryViper.GetBool("delete-table-if-exists"),
 		}
 		if executeRawQueryViper.GetString("executor-project") == "" {
 			params.ExecutorProject = params.ProjectId

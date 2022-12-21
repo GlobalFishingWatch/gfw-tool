@@ -54,29 +54,41 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 
 	log.Printf("→ BQ →→ Executing query with destination table %s.%s", params.DestinationDataset, params.DestinationTable)
 	dstTable := common.BigQueryGetTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
-	metadata := &bigquery.TableMetadata{
-		Location: "US",
-	}
-
-	if params.Schema != nil {
-		var schema []*bigquery.FieldSchema
-		for _, f := range params.Schema {
-			schema = append(schema, getFieldSchema(f))
+	if params.Schema != nil || params.TimePartitioning != "" {
+		metadata := &bigquery.TableMetadata{
+			Location: "US",
 		}
 
-		metadata.Schema = schema
-	}
+		if params.Schema != nil {
+			var schema []*bigquery.FieldSchema
+			for _, f := range params.Schema {
+				schema = append(schema, getFieldSchema(f))
+			}
 
-	if params.TimePartitioning != "" {
-		metadata.TimePartitioning = &bigquery.TimePartitioning{
-			Field: params.PartitionTimeField,
-			Type:  bigquery.TimePartitioningType(params.TimePartitioning),
+			metadata.Schema = schema
+		}
+
+		if params.TimePartitioning != "" {
+			metadata.TimePartitioning = &bigquery.TimePartitioning{
+				Field: params.PartitionTimeField,
+				Type:  bigquery.TimePartitioningType(params.TimePartitioning),
+			}
+		}
+		existsTable := common.BigQueryCheckIfTableExists(ctx, dstTable)
+		if existsTable {
+			if !params.DeleteTableIfExists {
+				log.Fatal("table already exists")
+			} else {
+				log.Printf("→ BQ →→ Table already exists. Deleting it")
+				common.BigQueryDeleteTable(ctx, params.ProjectId, params.DestinationDataset, params.DestinationTable)
+			}
+		}
+		err := dstTable.Create(ctx, metadata)
+		if err != nil {
+			log.Fatalf("→ BQ →→ Error creating table %e", err)
 		}
 	}
-	err := dstTable.Create(ctx, metadata)
-	if err != nil {
-		log.Fatalf("→ BQ →→ Error creating table %e", err)
-	}
+
 	client := common.BigQueryCreateClient(ctx, params.ExecutorProject)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable
