@@ -2,6 +2,7 @@ package bigquery
 
 import (
 	"context"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
@@ -22,5 +23,6 @@ func ExecuteCreateTable(params types.BQCreateTableConfig) {
 		"",
 		"",
 		clusterFields,
+		params.Labels,
 	)
 }

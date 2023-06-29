@@ -1,11 +1,13 @@
 package bigquery
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var createTableViper *viper.Viper
@@ -27,6 +29,8 @@ func init() {
 
 	createTableCmd.Flags().StringP("query", "", "", "The query to execute")
 	createTableCmd.MarkFlagRequired("query")
+
+	createTableCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
 
 	createTableViper.BindPFlags(createTableCmd.Flags())
 
@@ -51,6 +55,7 @@ Example:
 			ProjectId: createTableViper.GetString("project-id"),
 			TableName: createTableViper.GetString("table-name"),
 			DatasetId: createTableViper.GetString("dataset-id"),
+			Labels:    utils.ConvertSliceToMap(createTableViper.GetStringSlice("labels")),
 		}
 		log.Println(params)
 

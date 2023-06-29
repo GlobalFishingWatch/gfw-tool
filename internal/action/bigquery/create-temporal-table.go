@@ -2,6 +2,7 @@ package bigquery
 
 import (
 	"context"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
@@ -16,5 +17,6 @@ func ExecuteCreateTemporalTable(params types.BQCreateTemporalTableConfig) {
 		params.Query,
 		params.TTL,
 		"",
+		params.Labels,
 	)
 }

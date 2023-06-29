@@ -1,11 +1,13 @@
 package bq2psql
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bq2psql"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var exportCSVViper *viper.Viper
@@ -32,6 +34,8 @@ func init() {
 	exportCsvCmd.MarkFlagRequired("postgres-table")
 	exportCsvCmd.Flags().StringP("postgres-table-columns", "", "", "")
 	exportCsvCmd.MarkFlagRequired("postgres-table-columns")
+
+	exportCsvCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
 
 	exportCSVViper.BindPFlags(exportCsvCmd.Flags())
 }
@@ -62,6 +66,7 @@ Example:
 			TemporalDataset:      viper.GetString("import-csv-temporal-dataset"),
 			TemporalBucket:       viper.GetString("import-csv-temporal-bucket"),
 			DestinationTableName: viper.GetString("import-postgres-table-name"),
+			Labels:               utils.ConvertSliceToMap(exportCSVViper.GetStringSlice("labels")),
 		}
 
 		postgresConfig := types.CloudSqlConfig{

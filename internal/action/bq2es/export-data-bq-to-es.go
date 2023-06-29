@@ -2,20 +2,21 @@ package bq2es
 
 import (
 	"bytes"
-	"cloud.google.com/go/bigquery"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
-	"github.com/GlobalFishingWatch/gfw-tool/types"
-	"github.com/GlobalFishingWatch/gfw-tool/utils"
-	"github.com/dustin/go-humanize"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"cloud.google.com/go/bigquery"
+	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
+	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
+	"github.com/dustin/go-humanize"
 )
 
 var onErrorAction string
@@ -41,7 +42,7 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 	ch := make(chan map[string]bigquery.Value, 500)
 
 	log.Println("→ Getting results from big query")
-	getResultsFromBigQuery(ctx, params.ProjectId, params.Query, ch)
+	getResultsFromBigQuery(ctx, params.ProjectId, params.Query, params.Labels, ch)
 
 	log.Println("→ Importing results to elasticsearch (Bulk)")
 	if strings.TrimRight(params.ImportMode, "\n") == "recreate" {
@@ -89,8 +90,8 @@ func validateFlags(params types.BQ2ESImportConfig) {
 }
 
 // BigQuery Functions
-func getResultsFromBigQuery(ctx context.Context, projectId string, query string, ch chan map[string]bigquery.Value) {
-	iterator := common.BigQueryMakeQuery(ctx, projectId, query, false)
+func getResultsFromBigQuery(ctx context.Context, projectId string, query string, labels map[string]string, ch chan map[string]bigquery.Value) {
+	iterator := common.BigQueryMakeQuery(ctx, projectId, query, false, labels)
 	go common.BigQueryParseResultsToJson(iterator, ch)
 }
 

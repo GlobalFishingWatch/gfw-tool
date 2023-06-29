@@ -1,14 +1,15 @@
 package bq2psql
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"fmt"
+	"log"
+	"sync"
+
+	"cloud.google.com/go/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/GlobalFishingWatch/gfw-tool/utils"
-	"log"
-	"sync"
 )
 
 var currentBatch = 0
@@ -24,7 +25,7 @@ func ExportBigQueryToPostgres(params types.BQ2PSQLExportConfig, postgresConfig t
 	}
 
 	log.Println("→ Getting results from BigQuery")
-	getResultsFromBigQuery(ctx, params.ProjectId, params.Query, ch)
+	getResultsFromBigQuery(ctx, params.ProjectId, params.Query, params.Labels, ch)
 
 	log.Println("→ Importing results to Postgres")
 
@@ -40,8 +41,8 @@ func ExportBigQueryToPostgres(params types.BQ2PSQLExportConfig, postgresConfig t
 }
 
 // BigQuery Functions
-func getResultsFromBigQuery(ctx context.Context, projectId string, queryRequested string, ch chan map[string]bigquery.Value) {
-	iterator := common.BigQueryMakeQuery(ctx, projectId, queryRequested, true)
+func getResultsFromBigQuery(ctx context.Context, projectId string, queryRequested string, labels map[string]string, ch chan map[string]bigquery.Value) {
+	iterator := common.BigQueryMakeQuery(ctx, projectId, queryRequested, true, labels)
 	go common.BigQueryParseResultsToJson(iterator, ch)
 }
 
