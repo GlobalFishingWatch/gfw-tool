@@ -3,9 +3,10 @@ package bq2gcs
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
-	"log"
 )
 
 func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) {
@@ -23,6 +24,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) 
 			temporalHeadersQuery,
 			0,
 			"_headers",
+			params.Labels,
 		)
 
 		common.BigQueryExportTemporalTableToCsvInGCS(
@@ -33,6 +35,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) 
 			params.Bucket,
 			params.BucketDirectory,
 			true,
+			params.Labels,
 		)
 
 		common.GCSCopyObject(
@@ -55,6 +58,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) 
 		params.Query,
 		0,
 		"",
+		params.Labels,
 	)
 
 	if params.DestinationFormat == "CSV" {
@@ -66,6 +70,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) 
 			params.Bucket,
 			params.BucketDirectory,
 			params.HeadersEnable,
+			params.Labels,
 		)
 	} else if params.DestinationFormat == "JSON" {
 		common.BigQueryExportTemporalTableToJSONInGCS(
@@ -76,6 +81,7 @@ func ExportDataFromBigQueryQueryToGCS(params types.BQ2GCSExportDataToGCSConfig) 
 			params.Bucket,
 			params.BucketDirectory,
 			params.CompressObjects,
+			params.Labels,
 		)
 	} else {
 		log.Fatal("Destination format not allowed")

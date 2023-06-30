@@ -6,6 +6,7 @@ import (
 
 	action "github.com/GlobalFishingWatch/gfw-tool/internal/action/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,6 +41,8 @@ func init() {
 
 	executeRawQueryCmd.Flags().Bool("delete-table-if-exists", true, "Delete table if already exists. Default: true")
 
+	executeRawQueryCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
+
 	executeRawQueryViper.BindPFlags(executeRawQueryCmd.Flags())
 }
 
@@ -66,6 +69,7 @@ Example:
 			PartitionTimeField:  executeRawQueryViper.GetString("partition-field"),
 			TimePartitioning:    executeRawQueryViper.GetString("partition-time"),
 			DeleteTableIfExists: executeRawQueryViper.GetBool("delete-table-if-exists"),
+			Labels:              utils.ConvertSliceToMap(executeRawQueryViper.GetStringSlice("labels")),
 		}
 		if executeRawQueryViper.GetString("executor-project") == "" {
 			params.ExecutorProject = params.ProjectId

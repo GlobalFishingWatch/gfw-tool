@@ -58,6 +58,10 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 		metadata := &bigquery.TableMetadata{
 			Location: "US",
 		}
+		if params.Labels != nil {
+			println("Setting labels")
+			metadata.Labels = params.Labels
+		}
 
 		if params.Schema != nil {
 			var schema []*bigquery.FieldSchema
@@ -93,6 +97,9 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable
 	query.QueryConfig.WriteDisposition = bigquery.TableWriteDisposition(params.WriteDisposition)
+	if params.Labels != nil {
+		query.QueryConfig.Labels = params.Labels
+	}
 
 	job, err := query.Run(context.Background())
 	if err != nil {
@@ -125,6 +132,9 @@ func executeQuery(ctx context.Context, params types.BQRawQueryConfig) []map[stri
 		log.Println("→ BQ →→ Adding nil as destination table")
 		query.QueryConfig.Dst = nil
 		query.Dst = nil
+	}
+	if params.Labels != nil {
+		query.QueryConfig.Labels = params.Labels
 	}
 
 	log.Println("→ BQ →→ Executing query")

@@ -1,11 +1,13 @@
 package bq2psql
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bq2psql"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var exportViper *viper.Viper
@@ -32,6 +34,8 @@ func init() {
 	exportCmd.MarkFlagRequired("postgres-password")
 	exportCmd.Flags().StringP("postgres-database", "", "", "The destination database name")
 	exportCmd.MarkFlagRequired("postgres-database")
+
+	exportCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
 
 	exportViper.BindPFlags(exportCmd.Flags())
 }
@@ -61,6 +65,7 @@ Example:
 			ProjectId: exportViper.GetString("import-project-id"),
 			TableName: exportViper.GetString("import-table-name"),
 			Schema:    exportViper.GetString("import-table-schema"),
+			Labels:    utils.ConvertSliceToMap(exportViper.GetStringSlice("labels")),
 		}
 
 		postgresConfig := types.PostgresConfig{

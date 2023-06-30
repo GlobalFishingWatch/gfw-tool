@@ -1,11 +1,13 @@
 package bigquery
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bigquery"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var createTemporalTableViper *viper.Viper
@@ -29,6 +31,8 @@ func init() {
 
 	createTemporalTableCmd.Flags().StringP("query", "", "", "The query to execute")
 	createTemporalTableCmd.MarkFlagRequired("query")
+
+	createTemporalTableCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
 
 	createTemporalTableViper.BindPFlags(createTemporalTableCmd.Flags())
 
@@ -54,6 +58,7 @@ Example:
 			TempTableName: createTemporalTableViper.GetString("temp-table-name"),
 			TempDatasetId: createTemporalTableViper.GetString("temp-dataset-id"),
 			TTL:           createTemporalTableViper.GetInt("temp-table-ttl"),
+			Labels:        utils.ConvertSliceToMap(createTemporalTableViper.GetStringSlice("labels")),
 		}
 		log.Println(params)
 

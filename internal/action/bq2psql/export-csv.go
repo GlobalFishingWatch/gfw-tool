@@ -1,10 +1,15 @@
 package bq2psql
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/storage"
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"golang.org/x/oauth2"
@@ -12,10 +17,6 @@ import (
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
-	"io/ioutil"
-	"log"
-	"strings"
-	"time"
 )
 
 func ExportCsvBigQueryToPostgres(params types.BQ2PSQLExportCSVConfig, cloudSqlConfig types.CloudSqlConfig) {
@@ -35,6 +36,7 @@ func ExportCsvBigQueryToPostgres(params types.BQ2PSQLExportCSVConfig, cloudSqlCo
 		params.Query,
 		24,
 		"",
+		params.Labels,
 	)
 
 	// Export events to csv

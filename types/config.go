@@ -11,6 +11,7 @@ type BQ2GCSExportDataToGCSConfig struct {
 	BucketDstObjectName  string
 	HeadersEnable        bool
 	ExportHeadersAsAFile bool
+	Labels               map[string]string
 }
 
 type BQ2ESImportConfig struct {
@@ -23,6 +24,7 @@ type BQ2ESImportConfig struct {
 	NormalizedPropertyName string
 	NormalizeEndpoint      string
 	OnError                string
+	Labels                 map[string]string
 }
 
 type BQCreateTableConfig struct {
@@ -30,6 +32,7 @@ type BQCreateTableConfig struct {
 	ProjectId string
 	DatasetId string
 	TableName string
+	Labels    map[string]string
 }
 
 type BQCreateTemporalTableConfig struct {
@@ -38,6 +41,7 @@ type BQCreateTemporalTableConfig struct {
 	TempDatasetId string
 	TempTableName string
 	TTL           int
+	Labels        map[string]string
 }
 
 type BQRawQueryConfig struct {
@@ -51,6 +55,7 @@ type BQRawQueryConfig struct {
 	TimePartitioning    string
 	ExecutorProject     string
 	DeleteTableIfExists bool
+	Labels              map[string]string
 }
 
 type GCS2BQExportDataToBigQueryConfig struct {
@@ -63,6 +68,7 @@ type GCS2BQExportDataToBigQueryConfig struct {
 	Schema             string
 	PartitionTimeField string
 	ClusteredFields    string
+	Labels             map[string]string
 }
 
 type GCSMergeMultipleObjectsConfig struct {
@@ -165,6 +171,7 @@ type BQ2PSQLExportConfig struct {
 	ProjectId string
 	TableName string
 	Schema    string
+	Labels    map[string]string
 }
 
 type BQ2PSQLExportCSVConfig struct {
@@ -173,6 +180,7 @@ type BQ2PSQLExportCSVConfig struct {
 	TemporalDataset      string
 	TemporalBucket       string
 	DestinationTableName string
+	Labels               map[string]string
 }
 
 type CloudSqlConfig struct {

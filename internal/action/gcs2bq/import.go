@@ -1,12 +1,13 @@
 package gcs2bq
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
-	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
-	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"log"
 	"strings"
+
+	"cloud.google.com/go/bigquery"
+	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
+	"github.com/GlobalFishingWatch/gfw-tool/types"
 )
 
 func Export(params types.GCS2BQExportDataToBigQueryConfig) {
@@ -55,7 +56,7 @@ func executeCreateMode(
 		clusteredFields = make([]string, 0)
 	}
 
-	common.BigQueryCreateTable(ctx, table, params.Schema, params.PartitionTimeField, clusteredFields)
+	common.BigQueryCreateTable(ctx, table, params.Schema, params.PartitionTimeField, clusteredFields, params.Labels)
 	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
 		params.TableName,

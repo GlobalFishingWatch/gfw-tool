@@ -1,11 +1,13 @@
 package bq2es
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bq2es"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var exportBqToEsViper *viper.Viper
@@ -29,6 +31,8 @@ func init() {
 	exportBq2EsCmd.Flags().StringP("normalize-property-name", "", "", "The property name to store the normalized value")
 	exportBq2EsCmd.Flags().StringP("normalize-endpoint", "", "", "The final endpoint to normalize")
 	exportBq2EsCmd.Flags().StringP("on-error", "e", "reindex", "Action to do if command fails [reindex|delete|keep]")
+
+	exportBq2EsCmd.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
 
 	exportBqToEsViper.BindPFlags(exportBq2EsCmd.Flags())
 
@@ -59,6 +63,7 @@ Example:
 			NormalizedPropertyName: exportBqToEsViper.GetString("normalize-property-name"),
 			NormalizeEndpoint:      exportBqToEsViper.GetString("normalize-endpoint"),
 			OnError:                exportBqToEsViper.GetString("on-error"),
+			Labels:                 utils.ConvertSliceToMap(exportBqToEsViper.GetStringSlice("labels")),
 		}
 
 		log.Println("→ Executing export command")

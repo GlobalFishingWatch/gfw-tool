@@ -1,17 +1,18 @@
 package common
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"fmt"
-	"github.com/GlobalFishingWatch/gfw-tool/utils"
-	uuid "github.com/satori/go.uuid"
-	"google.golang.org/api/iterator"
 	"log"
 	"reflect"
 	"sort"
 	"strings"
 	"time"
+
+	"cloud.google.com/go/bigquery"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/api/iterator"
 )
 
 func BigQueryCreateClient(ctx context.Context, projectId string) *bigquery.Client {
@@ -30,19 +31,27 @@ func BigQueryMakeQuery(
 	projectId string,
 	sqlQuery string,
 	exportToTemporalTable bool,
+	labels map[string]string,
 ) *bigquery.RowIterator {
 	log.Println("→ BQ →→ Making query to get data from bigQuery")
 	client := BigQueryCreateClient(ctx, projectId)
 
 	query := client.Query(sqlQuery)
 	query.AllowLargeResults = true
+	if labels != nil {
+		query.QueryConfig.Labels = labels
+	}
 
 	if exportToTemporalTable == true {
 		currentTime := time.Now()
 		datasetId := "0_ttl24h"
 		temporalTableName := fmt.Sprintf("%s_%s", uuid.NewV4(), currentTime.Format("2006-01-02"))
 		dstTable := client.Dataset(datasetId).Table(string(temporalTableName))
-		err := dstTable.Create(ctx, &bigquery.TableMetadata{ExpirationTime: time.Now().Add(24 * time.Hour)})
+		tableMetadata := bigquery.TableMetadata{ExpirationTime: time.Now().Add(24 * time.Hour)}
+		if labels != nil {
+			tableMetadata.Labels = labels
+		}
+		err := dstTable.Create(ctx, &tableMetadata)
 		if err != nil {
 			log.Fatal("→ BQ →→ Error creating temporary table", err)
 		}
@@ -145,6 +154,7 @@ func BigQueryCreateTemporalTableFromQuery(
 	sqlStatement string,
 	ttl int,
 	suffix string,
+	labels map[string]string,
 ) string {
 	log.Println("→ BQ →→ Creating temporal table")
 
@@ -182,6 +192,9 @@ func BigQueryCreateTemporalTableFromQuery(
 
 	tableMetadata = &bigquery.TableMetadata{ExpirationTime: time.Now().Add(ttlParsed)}
 
+	if labels != nil {
+		tableMetadata.Labels = labels
+	}
 	err := dstTable.Create(ctx, tableMetadata)
 	if err != nil {
 		log.Fatal("→ BQ →→ Error creating temporary table", err)
@@ -207,6 +220,7 @@ func BigQueryCreateTable(
 	schema string,
 	partitionTimeField string,
 	clusteredFields []string,
+	labels map[string]string,
 ) {
 	schemaParsed, err := bigquery.SchemaFromJSON([]byte(schema))
 	if err != nil {
@@ -217,6 +231,9 @@ func BigQueryCreateTable(
 
 	if schema != "" {
 		metaData.Schema = schemaParsed
+	}
+	if labels != nil {
+		metaData.Labels = labels
 	}
 
 	if partitionTimeField != "" {
@@ -267,6 +284,7 @@ func BigQueryExportTemporalTableToCsvInGCS(
 	bucket string,
 	directory string,
 	headersEnable bool,
+	labels map[string]string,
 ) []string {
 
 	bqClient := BigQueryCreateClient(ctx, projectId)
@@ -282,6 +300,9 @@ func BigQueryExportTemporalTableToCsvInGCS(
 		extractor.DisableHeader = false
 	} else {
 		extractor.DisableHeader = true
+	}
+	if labels != nil {
+		extractor.ExtractConfig.Labels = labels
 	}
 	job, err := extractor.Run(ctx)
 	BigQueryCheckJob(job, err)
@@ -302,6 +323,7 @@ func BigQueryExportTemporalTableToJSONInGCS(
 	bucket string,
 	directory string,
 	compressObjects bool,
+	labels map[string]string,
 ) []string {
 	bqClient := BigQueryCreateClient(ctx, projectId)
 	defer bqClient.Close()
@@ -320,6 +342,9 @@ func BigQueryExportTemporalTableToJSONInGCS(
 	}
 
 	extractor := table.ExtractorTo(gcsRef)
+	if labels != nil {
+		extractor.ExtractConfig.Labels = labels
+	}
 	job, err := extractor.Run(ctx)
 	BigQueryCheckJob(job, err)
 	config, err := job.Config()

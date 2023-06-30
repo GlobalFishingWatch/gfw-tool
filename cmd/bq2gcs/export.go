@@ -1,11 +1,13 @@
 package bq2gcs
 
 import (
+	"log"
+
 	"github.com/GlobalFishingWatch/gfw-tool/internal/action/bq2gcs"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
+	"github.com/GlobalFishingWatch/gfw-tool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var exportBqToGcsViper *viper.Viper
@@ -40,6 +42,8 @@ func init() {
 
 	exportBQtoGCS.Flags().StringP("gcs-export-headers-as-a-file", "", "true", "Export empty CSV and its first row include the headers")
 
+	exportBQtoGCS.Flags().StringSlice("labels", []string{}, "Labels to apply to BQ separated by comma. Example: project=api,environment=production")
+
 	exportBqToGcsViper.BindPFlags(exportBQtoGCS.Flags())
 }
 
@@ -67,6 +71,7 @@ Format:
 			CompressObjects:      exportBqToGcsViper.GetBool("gcs-compress-objects"),
 			HeadersEnable:        exportBqToGcsViper.GetBool("gcs-headers-enable"),
 			ExportHeadersAsAFile: exportBqToGcsViper.GetBool("gcs-export-headers-as-a-file"),
+			Labels:               utils.ConvertSliceToMap(exportBqToGcsViper.GetStringSlice("labels")),
 		}
 		log.Printf("→ Config: [%s]", params)
 
