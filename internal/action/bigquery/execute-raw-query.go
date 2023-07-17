@@ -93,6 +93,10 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 		}
 	}
 
+	if params.ExecutorProject == "" {
+		params.ExecutorProject = params.ProjectId
+	}
+
 	client := common.BigQueryCreateClient(ctx, params.ExecutorProject)
 	query := client.Query(params.Query)
 	query.QueryConfig.Dst = dstTable
@@ -124,6 +128,9 @@ func executeDestinationQuery(ctx context.Context, params types.BQRawQueryConfig)
 }
 
 func executeQuery(ctx context.Context, params types.BQRawQueryConfig) []map[string]interface{} {
+	if params.ExecutorProject == "" {
+		params.ExecutorProject = params.ProjectId
+	}
 	client := common.BigQueryCreateClient(ctx, params.ExecutorProject)
 	query := client.Query(params.Query)
 	query.AllowLargeResults = true
