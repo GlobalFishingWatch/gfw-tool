@@ -446,22 +446,13 @@ func toMapJson(values []bigquery.Value, schema bigquery.Schema) map[string]bigqu
 					aux[columnNamesNested[c]] = valuesNested[c]
 					dataMapped[columnNames[i]] = aux
 				} else {
-					valuesParsed[c] = toMapJsonNested(valuesNested[c].([]bigquery.Value), schema[i].Schema)
+					valuesParsed[c] = toMapJson(valuesNested[c].([]bigquery.Value), schema[i].Schema)
 					dataMapped[columnNames[i]] = valuesParsed
 				}
 			}
 		} else {
 			dataMapped[columnNames[i]] = values[i]
 		}
-	}
-	return dataMapped
-}
-
-func toMapJsonNested(value []bigquery.Value, schema bigquery.Schema) map[string]bigquery.Value {
-	var columnNames = BigQueryGetColumnNamesFromTableSchema(schema)
-	var dataMapped = make(map[string]bigquery.Value)
-	for c := 0; c < len(columnNames); c++ {
-		dataMapped[columnNames[c]] = value[c]
 	}
 	return dataMapped
 }
