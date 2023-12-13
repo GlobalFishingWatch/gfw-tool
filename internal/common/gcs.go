@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"io"
@@ -134,13 +133,17 @@ func GCSMergeObjects(ctx context.Context, bucket string, objectNames []string, m
 			src1 := bkt.Object(name)
 			src2 := bkt.Object(mergedObjectName)
 			dst := bkt.Object(mergedObjectName)
-			res, err := dst.ComposerFrom(src2, src1).Run(ctx)
-			spew.Dump(res)
+			_, err := dst.ComposerFrom(src2, src1).Run(ctx)
 			if err != nil {
 				log.Fatalf("→ GCS →→ ComposerFrom: %v", err)
 			}
 			log.Printf("→ GCS →→ New composite object %v was created by combining %v and %v\n", mergedObjectName, name, mergedObjectName)
 			GCSDeleteObject(ctx, bucket, name)
+
+			/*
+			 The ComposerFrom command is async, and we need to await a couple of seconds to about rateLimit errors because Google Cloud Storage
+			 doesn't allow to make more than one request and once.
+			*/
 			time.Sleep(2 * time.Second)
 		}
 	}
