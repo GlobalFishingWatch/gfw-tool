@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"io"
@@ -133,13 +134,14 @@ func GCSMergeObjects(ctx context.Context, bucket string, objectNames []string, m
 			src1 := bkt.Object(name)
 			src2 := bkt.Object(mergedObjectName)
 			dst := bkt.Object(mergedObjectName)
-
-			_, err := dst.ComposerFrom(src2, src1).Run(ctx)
+			res, err := dst.ComposerFrom(src2, src1).Run(ctx)
+			spew.Dump(res)
 			if err != nil {
 				log.Fatalf("→ GCS →→ ComposerFrom: %v", err)
 			}
 			log.Printf("→ GCS →→ New composite object %v was created by combining %v and %v\n", mergedObjectName, name, mergedObjectName)
 			GCSDeleteObject(ctx, bucket, name)
+			time.Sleep(2 * time.Second)
 		}
 	}
 }
