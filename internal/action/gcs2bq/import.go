@@ -59,7 +59,7 @@ func executeCreateMode(
 	common.BigQueryCreateTable(ctx, table, params.Schema, params.PartitionTimeField, clusteredFields, params.Labels)
 	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
-		params.TableName,
+		params.SourceDataFormat,
 	)
 	loader := table.LoaderFrom(gcsRef)
 	runLoader(ctx, loader)
@@ -75,7 +75,7 @@ func executeAutodetectMode(ctx context.Context, table *bigquery.Table, params ty
 	}
 	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
-		params.TableName,
+		params.SourceDataFormat,
 	)
 	gcsRef.FileConfig.AutoDetect = true
 	gcsRef.FileConfig.Schema = nil
@@ -93,7 +93,7 @@ func executeAppendMode(ctx context.Context, table *bigquery.Table, params types.
 	}
 	gcsRef := common.BigQueryGetStorageRef(
 		params.BucketUri,
-		params.TableName,
+		params.SourceDataFormat,
 	)
 	loader := table.LoaderFrom(gcsRef)
 	runLoader(ctx, loader)
