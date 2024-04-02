@@ -372,12 +372,12 @@ func BigQueryGetStorageRef(
 	bucketUri string,
 	sourceDataFormat string,
 ) *bigquery.GCSReference {
-	log.Printf("→ GCS →→ Getting gcsRef from uri %s", bucketUri)
+	log.Printf("→ GCS →→ Getting gcsRef from uri %s, format %s", bucketUri, sourceDataFormat)
 	gcsRef := bigquery.NewGCSReference(bucketUri)
 
 	var dataFormat bigquery.DataFormat
 	if sourceDataFormat == "JSON" {
-		dataFormat = "JSON"
+		dataFormat = bigquery.JSON
 	}
 
 	gcsRef.FileConfig = bigquery.FileConfig{SourceFormat: dataFormat}
