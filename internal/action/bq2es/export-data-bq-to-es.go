@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -49,8 +50,8 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 		common.ElasticSearchRecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
-	const threads = 15
-	const Batch = 2000
+	const threads = 1
+	const Batch = 1
 
 	log.Println("→ ES →→ Importing data to ElasticSearch")
 	log.Printf("→ ES →→ Opening [%s] threads", threads)
@@ -109,57 +110,26 @@ func importBulk(
 ) {
 
 	var (
-		buf         bytes.Buffer
-		numItems    int
-		numErrors   int
-		numIndexed  int
-		requestBody map[string]string
-		jsonStr     []byte
-		err         error
-		req         *http.Request
-		resp        *http.Response
+		buf        bytes.Buffer
+		numItems   int
+		numErrors  int
+		numIndexed int
 	)
-
-	client := &http.Client{}
 
 	numItems = 0
 	for doc := range ch {
+
 		if strings.TrimRight(normalize, "\n") != "" {
-			if doc[normalize] == nil {
+			if len(strings.Split(normalize, ".")) == 1 && doc[normalize] == nil {
 				// log.Printf("The property %v does not exist on the documents", normalize)
 				doc[normalizePropertyName] = ""
 			} else {
-				requestBody = map[string]string{
-					"type":  normalize,
-					"value": doc[normalize].(string),
-				}
-				jsonStr, err = json.Marshal(requestBody)
-				if err != nil {
-					doc["normalized_"+normalize] = doc[normalize].(string)
-				} else {
-					req, err = http.NewRequest("POST", normalizeEndpoint, bytes.NewBuffer(jsonStr))
-					req.Header.Set("Content-Type", "application/json")
-					resp, err = client.Do(req)
-					if err != nil {
-						log.Fatalf("Error normalizing property %s: %s", normalize, err)
-					}
-
-					if resp.StatusCode != 200 {
-						// log.Printf("Error normalizing the property %s. Value: %s. Error: %s", normalize, doc[normalize].(string), resp.Status)
-						doc["normalized_"+normalize] = doc[normalize].(string)
-					} else {
-						var responseParsed = types.NormalizeResponse{}
-						err = json.NewDecoder(resp.Body).Decode(&responseParsed)
-						if err != nil {
-							// log.Printf("Error normalizing the property %s. Error: %s", normalize, err)
-							doc["normalized_"+normalize] = doc[normalize].(string)
-						} else {
-							doc["normalized_"+normalize] = responseParsed.Result
-						}
-					}
-					resp.Body.Close()
-				}
-
+				normalizePropertyValue(
+					doc,
+					normalize,
+					normalizePropertyName,
+					normalizeEndpoint,
+				)
 			}
 		}
 		preparePayload(&buf, doc)
@@ -191,6 +161,74 @@ func importBulk(
 	}
 
 	createReport(start, numErrors, numIndexed)
+}
+
+func normalizePropertyValue(
+	doc map[string]bigquery.Value,
+	normalize string,
+	normalizePropertyName string,
+	normalizeEndpoint string,
+) {
+
+	var (
+		requestBody map[string]string
+		jsonStr     []byte
+		err         error
+		req         *http.Request
+		resp        *http.Response
+	)
+
+	normalizeSplit := strings.Split(normalize, ".")
+
+	if len(normalizeSplit) > 2 {
+		log.Fatalf("The property %s has more than 2 levels", normalize)
+	}
+	firstLevelValue := doc[normalizeSplit[0]]
+
+	if firstLevelValue == nil {
+		doc[normalizePropertyName] = ""
+		return
+	}
+
+	// Check if the value is of type []map[string]bigquery.Value
+	if reflect.TypeOf(firstLevelValue) == reflect.TypeOf([]map[string]bigquery.Value{}) {
+		for _, value := range firstLevelValue.([]map[string]bigquery.Value) {
+			normalizePropertyValue(value, normalizeSplit[1], normalizePropertyName, normalizeEndpoint)
+		}
+		return
+	}
+	requestBody = map[string]string{
+		"type":  normalize,
+		"value": doc[normalize].(string),
+	}
+	jsonStr, err = json.Marshal(requestBody)
+	if err != nil {
+		doc[normalizePropertyName] = doc[normalize].(string)
+	} else {
+		client := &http.Client{}
+
+		req, err = http.NewRequest("POST", normalizeEndpoint, bytes.NewBuffer(jsonStr))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err = client.Do(req)
+		if err != nil {
+			log.Fatalf("Error normalizing property %s: %s", normalize, err)
+		}
+
+		if resp.StatusCode != 200 {
+			doc[normalizePropertyName] = doc[normalize].(string)
+		} else {
+			var responseParsed = types.NormalizeResponse{}
+			err = json.NewDecoder(resp.Body).Decode(&responseParsed)
+			if err != nil {
+				log.Printf("Error normalizing the property %s. Error: %s", normalize, err)
+				doc[normalizePropertyName] = doc[normalize].(string)
+			} else {
+				normalizePropertySplit := strings.Split(normalizePropertyName, ".")
+				doc[normalizePropertySplit[len(normalizePropertySplit)-1]] = responseParsed.Result
+			}
+		}
+		resp.Body.Close()
+	}
 }
 
 func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (int, int, int) {
