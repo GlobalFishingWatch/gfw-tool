@@ -17,7 +17,6 @@ import (
 	"github.com/GlobalFishingWatch/gfw-tool/internal/common"
 	"github.com/GlobalFishingWatch/gfw-tool/types"
 	"github.com/GlobalFishingWatch/gfw-tool/utils"
-	"github.com/dustin/go-humanize"
 )
 
 var onErrorAction string
@@ -50,8 +49,8 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 		common.ElasticSearchRecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
-	const threads = 1
-	const Batch = 1
+	const threads = 15
+	const Batch = 2000
 
 	log.Println("→ ES →→ Importing data to ElasticSearch")
 	log.Printf("→ ES →→ Opening [%s] threads", threads)
