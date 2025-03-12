@@ -30,7 +30,7 @@ resource "google_cloudbuild_trigger" "gfw-tool-processing" {
          
           docker build \
             -t \
-            us-central1-docker.pkg.dev/gfw-int-infrastructure/sar-v1/gfw-tool:$TAG_NAME \
+            us-central1-docker.pkg.dev/gfw-int-infrastructure/publication/gfw-tool:$TAG_NAME \
             ./classification
             
         EOF
@@ -38,7 +38,7 @@ resource "google_cloudbuild_trigger" "gfw-tool-processing" {
 
     }
 
-    images = ["us-central1-docker.pkg.dev/gfw-int-infrastructure/sar-v1/gfw-tool:$TAG_NAME"]
+    images = ["us-central1-docker.pkg.dev/gfw-int-infrastructure/publication/gfw-tool:$TAG_NAME"]
 
 
 
