@@ -13,3 +13,9 @@ temp
 run.sh
 
 test
+
+
+*.tfstate
+*.tfstate.backup
+.terraform
+.terraform.lock.hcl
