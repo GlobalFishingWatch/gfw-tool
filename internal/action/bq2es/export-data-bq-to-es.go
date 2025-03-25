@@ -50,8 +50,8 @@ func ExportBigQueryToElasticSearch(params types.BQ2ESImportConfig) {
 		common.ElasticSearchRecreateIndex(params.ElasticSearchUrl, params.IndexName)
 	}
 	var wg sync.WaitGroup
-	const threads = 10
-	const Batch = 1000
+	const threads = 15
+	const Batch = 2500
 
 	log.Println("→ ES →→ Importing data to ElasticSearch")
 	log.Printf("→ ES →→ Opening [%s] threads", threads)
