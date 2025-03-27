@@ -11,6 +11,10 @@ import (
 )
 
 func PostgresCreateClient(ctx context.Context, postgresConfig types.PostgresConfig) *pgx.Conn {
+	ip := Getip2()
+
+	log.Printf("→ PG →→ Public IP: %v", ip)
+
 	uri := "postgresql://" + postgresConfig.Addr + "/" + postgresConfig.Database + "?user=" + postgresConfig.User + "&password=" + postgresConfig.Password
 	conn, err := pgx.Connect(ctx, uri)
 	if err != nil {
