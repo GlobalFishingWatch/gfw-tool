@@ -250,7 +250,7 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	)
 	if res.IsError() {
 		numErrors += numItems
-		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		// common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Printf("Response error: [%s]", res.Body)
 		if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 			log.Fatalf("Failure to to parse response body: %s", err)
@@ -290,7 +290,7 @@ func preparePayload(buf *bytes.Buffer, document map[string]bigquery.Value) {
 	if _, found := document["id"]; found {
 		meta = []byte(fmt.Sprintf(`{ "index" : { "_id": "%s" }}%s`, document["id"].(string), "\n"))
 	} else {
-		meta = []byte(fmt.Sprintf(`{ "index" : { }%s`, "\n"))
+		meta = []byte(fmt.Sprintf(`{ "index" : { }}%s`, "\n"))
 	}
 
 	body, err := json.Marshal(document)
