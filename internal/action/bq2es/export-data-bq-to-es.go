@@ -290,7 +290,7 @@ func preparePayload(buf *bytes.Buffer, document map[string]bigquery.Value) {
 	if _, found := document["id"]; found {
 		meta = []byte(fmt.Sprintf(`{ "index" : { "_id": "%s" }}%s`, document["id"].(string), "\n"))
 	} else {
-		meta = []byte(fmt.Sprintf(`{ "index" : { }%s`, "\n"))
+		meta = []byte(fmt.Sprintf(`{ "index" : { }}%s`, "\n"))
 	}
 
 	body, err := json.Marshal(document)
