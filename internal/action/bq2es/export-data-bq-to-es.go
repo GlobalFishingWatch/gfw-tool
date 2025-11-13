@@ -250,7 +250,7 @@ func executeBulk(elasticsearchUrl string, indexName string, buf *bytes.Buffer) (
 	)
 	if res.IsError() {
 		numErrors += numItems
-		// common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
+		common.ElasticSearchExecuteOnErrorAction(elasticsearchUrl, indexName, onErrorAction, "")
 		log.Printf("Response error: [%s]", res.Body)
 		if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 			log.Fatalf("Failure to to parse response body: %s", err)
